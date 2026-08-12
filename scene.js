@@ -160,6 +160,22 @@ function soulLayout() {
   return { gap, flat: pick('flat'), heart: pick('heart'), sculpt: pick('sculpt') };
 }
 
+/* Camera fov is VERTICAL in three.js, so a portrait phone crops the sides -
+   and this room is a 19' corridor whose whole subject is horizontal.
+
+   Widening the lens cannot fix it: holding the desktop horizontal field at a
+   0.48 aspect would need a ~115 degree vertical fov, which is a fisheye. So
+   orbit views PULL BACK instead (fitScale), and only the walk view - where you
+   are inside a 92"-wide box and cannot back up - widens the lens a little. */
+const FOV_REF_ASPECT = 1.6;
+const FOV_WALK_MAX = 78;
+/* Capped low on purpose. Matching the desktop horizontal field at a 0.48
+   aspect needs ~3.3x the distance, which shrinks the room to a chip floating in
+   a tall empty frame. A long horizontal subject simply cannot fill a portrait
+   screen from a 3/4 orbit - so pull back modestly and pick a better default
+   view for narrow screens instead (see the door default below). */
+const FIT_MAX = 1.5;
+
 const EYE = 65;          // viewer eye height
 const FIGURE_H = 70;     // 5'10"
 
@@ -1547,6 +1563,10 @@ function makeFigure() {
 }
 const figure = makeFigure();
 figure.position.set(96, 0, 6);
+// off by default - it's a scale reference, not part of the show. The view
+// switcher re-reads t-figure, but nothing sets the initial state, so set it
+// here or the figure is visible on load with its checkbox unticked.
+figure.visible = false;
 scene.add(figure);
 
 /* -------------------------------------------------------------- camera rig */
@@ -1569,12 +1589,13 @@ function applyCamera() {
       Math.cos(walkPitch) * Math.sin(walkYaw)
     );
     camera.lookAt(camera.position.clone().add(dir));
-    camera.fov = 62;
+    camera.fov = fovFor(62);
   } else {
+    const d = orbit.dist * fitScale();
     const p = new T.Vector3(
-      target.x + orbit.dist * Math.sin(orbit.pol) * Math.cos(orbit.az),
-      target.y + orbit.dist * Math.cos(orbit.pol),
-      target.z + orbit.dist * Math.sin(orbit.pol) * Math.sin(orbit.az)
+      target.x + d * Math.sin(orbit.pol) * Math.cos(orbit.az),
+      target.y + d * Math.cos(orbit.pol),
+      target.z + d * Math.sin(orbit.pol) * Math.sin(orbit.az)
     );
     camera.position.copy(p);
     camera.lookAt(target);
@@ -1583,19 +1604,72 @@ function applyCamera() {
   camera.updateProjectionMatrix();
 }
 
+// how much further back an orbit view sits on a narrower-than-reference screen
+function fitScale() {
+  if (!(camera.aspect < FOV_REF_ASPECT)) return 1;
+  return Math.min(FOV_REF_ASPECT / camera.aspect, FIT_MAX);
+}
+
+function fovFor(base) {
+  if (!(camera.aspect < FOV_REF_ASPECT)) return base;
+  const halfH = Math.tan(base * Math.PI / 360) * FOV_REF_ASPECT;
+  return Math.min(2 * Math.atan(halfH / camera.aspect) * 180 / Math.PI, FOV_WALK_MAX);
+}
+
 /* ------------------------------------------------------------ interaction */
 
 const el = renderer.domElement;
 let drag = null;
 
+/* Touch: pointer events already give us drag-to-look for free, but a phone has
+   no wheel, so without a pinch handler there is no way to zoom or to walk the
+   corridor. Track every live pointer; two down means pinch, and we suspend the
+   one-finger orbit so the model doesn't lurch while zooming. The canvas sets
+   touch-action:none or the browser pans the page instead of telling us. */
+const touches = new Map();
+let pinch = 0;
+
+const pinchGap = () => {
+  const [a, b] = [...touches.values()];
+  return Math.hypot(a.x - b.x, a.y - b.y);
+};
+
+function zoomBy(factor) {
+  if (mode === 'walk') {
+    walkX = Math.max(-24, Math.min(DIM.len - 34, walkX + (factor - 1) * 220));
+  } else {
+    orbit.dist = Math.max(40, Math.min(900, orbit.dist / factor));
+  }
+  applyCamera();
+}
+
 el.addEventListener('pointerdown', e => {
   el.setPointerCapture(e.pointerId);
+  touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (touches.size === 2) { pinch = pinchGap(); drag = null; return; }
   drag = { x: e.clientX, y: e.clientY, pan: e.button === 2 || e.shiftKey };
 });
-el.addEventListener('pointerup', e => { drag = null; el.releasePointerCapture(e.pointerId); });
+
+function endPointer(e) {
+  touches.delete(e.pointerId);
+  if (touches.size < 2) pinch = 0;
+  drag = null;
+  if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
+}
+el.addEventListener('pointerup', endPointer);
+el.addEventListener('pointercancel', endPointer);
 el.addEventListener('contextmenu', e => e.preventDefault());
 
 el.addEventListener('pointermove', e => {
+  if (touches.has(e.pointerId)) touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+  if (touches.size === 2) {
+    const gap = pinchGap();
+    if (pinch > 0 && gap > 0) zoomBy(gap / pinch);
+    pinch = gap;
+    return;
+  }
+
   if (!drag) return;
   const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
   drag.x = e.clientX; drag.y = e.clientY;
@@ -1881,9 +1955,55 @@ function resize() {
   const w = el.parentElement.clientWidth, h = el.parentElement.clientHeight;
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
-  camera.updateProjectionMatrix();
+  applyCamera();          // re-derives the fov for the new aspect
 }
 addEventListener('resize', resize);
+
+/* ------------------------------------------------------------ mobile drawer */
+
+const handle = document.getElementById('drawer-handle');
+const scrim = document.getElementById('scrim');
+
+function setPanel(open) {
+  document.body.classList.toggle('panel-open', open);
+  handle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  handle.textContent = open ? 'Close' : 'Controls';
+}
+handle.addEventListener('click', () => setPanel(!document.body.classList.contains('panel-open')));
+scrim.addEventListener('click', () => setPanel(false));
+addEventListener('keydown', e => { if (e.key === 'Escape') setPanel(false);
+
+/* On a phone the corridor orbit reads as a small object in a tall frame. The
+   door view looks straight down the length of the container, which is a
+   naturally tall composition and fills a portrait screen. */
+if (matchMedia('(max-width: 860px)').matches) {
+  const btn = document.querySelector('[data-view="door"]');
+  if (btn) btn.click();
+} });
+
+// picking a view on a phone means you want to see it, not the panel you tapped
+document.querySelectorAll('[data-view]').forEach(b =>
+  b.addEventListener('click', () => {
+    if (matchMedia('(max-width: 860px)').matches) setPanel(false);
+
+/* On a phone the corridor orbit reads as a small object in a tall frame. The
+   door view looks straight down the length of the container, which is a
+   naturally tall composition and fills a portrait screen. */
+if (matchMedia('(max-width: 860px)').matches) {
+  const btn = document.querySelector('[data-view="door"]');
+  if (btn) btn.click();
+}
+  }));
+
+setPanel(false);
+
+/* On a phone the corridor orbit reads as a small object in a tall frame. The
+   door view looks straight down the length of the container, which is a
+   naturally tall composition and fills a portrait screen. */
+if (matchMedia('(max-width: 860px)').matches) {
+  const btn = document.querySelector('[data-view="door"]');
+  if (btn) btn.click();
+}
 
 resize();
 applyCamera();

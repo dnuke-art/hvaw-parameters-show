@@ -1,3 +1,5 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Parameters Layout</title>
 <style>
   /* Committed dark viewport - this is a previz tool, not a document.
@@ -19,13 +21,27 @@
 
   * { box-sizing: border-box; }
 
-  body {
+  /* Scroll lock. A drag on the canvas has to reach the orbit handler, not move
+     the page: touch-action on the canvas stops the gesture being claimed, and
+     these stop the document itself scrolling or rubber-banding underneath it
+     (iOS will bounce the whole page mid-orbit otherwise). position:fixed on the
+     body is the part that actually holds on iOS Safari. */
+  html, body {
+    height: 100%;
     margin: 0;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+  body {
+    position: fixed;
+    inset: 0;
     background: var(--bg);
     color: var(--ink);
     font-family: var(--sans);
-    overflow: hidden;
   }
+
+  /* no 300ms double-tap zoom delay on the controls */
+  button, label.chk, input { touch-action: manipulation; }
 
   #app {
     position: fixed;
@@ -173,7 +189,7 @@
   /* ------------------------------------------------------------------ stage */
 
   #stage { position: relative; background: var(--bg); }
-  #stage canvas { display: block; width: 100%; height: 100%; }
+  #stage canvas { display: block; width: 100%; height: 100%; touch-action: none; }
 
   #walkhint {
     display: none;
@@ -211,12 +227,72 @@
   #tag .b { color: var(--cyan); }
   #tag .c { color: var(--heat); }
 
+  /* ------------------------------------------------------------ mobile
+
+     Same off-canvas drawer as tidal-arranger: the panel leaves the grid and
+     becomes a fixed overlay, so the stage is full-bleed and the canvas never
+     has to resize when the panel opens. Closed by default - on a phone the
+     model is the point and the controls are the detour. */
+
+  #drawer-handle { display: none; }
+
+  #scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    background: rgba(8, 11, 12, .58);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms ease;
+  }
+
   @media (max-width: 860px) {
-    #app { grid-template-columns: 1fr; grid-template-rows: 46vh 1fr; }
-    #side { border-right: none; border-bottom: 1px solid var(--rule); }
-    #tag { font-size: 9px; }
+    #app { grid-template-columns: 1fr; grid-template-rows: 1fr; }
+
+    #side {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: min(320px, 86vw);
+      z-index: 30;
+      transform: translateX(-100%);
+      transition: transform 190ms ease;
+      border-right: 1px solid var(--rule);
+      box-shadow: 0 0 44px rgba(0, 0, 0, .6);
+      padding-top: 62px;
+    }
+    body.panel-open #side { transform: translateX(0); }
+    body.panel-open #scrim { opacity: 1; pointer-events: auto; }
+
+    #drawer-handle {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      position: fixed;
+      top: calc(12px + env(safe-area-inset-top));
+      left: calc(12px + env(safe-area-inset-left));
+      z-index: 40;
+      padding: 11px 15px;
+      background: rgba(22, 29, 32, .93);
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      color: var(--ink);
+    }
+
+    /* the three-line wall key wraps into a block on a phone and fights the
+       model for the top of the screen; the view buttons already name the walls */
+    #tag { display: none; }
+    #walkhint { font-size: 9px; padding: 7px 11px; bottom: 14px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #side, #scrim { transition: none; }
   }
 </style>
+
+<button id="drawer-handle" type="button" aria-expanded="false" aria-controls="side">Controls</button>
+<div id="scrim"></div>
 
 <div id="app">
 
@@ -252,7 +328,7 @@
       <label class="chk"><input type="checkbox" id="t-heart" checked> Hearts on plinths (LED + 78-tri)</label>
       <label class="chk"><input type="checkbox" id="t-cards" checked> Gallery cards + QR</label>
       <label class="chk"><input type="checkbox" id="t-walllabels" checked> Wall labels [/mind] [/soul] [/body]</label>
-      <label class="chk"><input type="checkbox" id="t-figure" checked> Figure (5&prime;10&Prime;)</label>
+      <label class="chk"><input type="checkbox" id="t-figure"> Figure (5&prime;10&Prime;)</label>
       <label class="chk"><input type="checkbox" id="t-cable"> Ethernet run (exposed)</label>
     </div>
 
@@ -336,7 +412,7 @@
       Right &middot; <b class="b">the soul</b> &mdash; sculpture + the shadow it cast<br>
       Back &middot; <b class="c">the body</b> &mdash; the bender + what it made
     </div>
-    <div id="walkhint">Drag to look &middot; scroll or &uarr;&darr; to walk the corridor</div>
+    <div id="walkhint">Drag to look &middot; pinch or scroll to walk the corridor</div>
   </div>
 
 </div>
