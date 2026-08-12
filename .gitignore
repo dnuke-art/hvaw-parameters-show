@@ -1,4 +1,5 @@
-# build output — regenerate with `python3 build.py`
+# build output — regenerate with `python3 build.py`.
+# docs/ is NOT ignored: GitHub Pages serves it.
 dist/
 
 # three.js sources that vendor/three.global.min.js is derived from.

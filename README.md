@@ -11,6 +11,8 @@ for what a mind is, and we turn it on ourselves. The collective is literal —
 routes to 8 of 128 specialists per token. *Springback* survives as the title of
 the wire work.
 
+**Live 3D previz:** https://dnuke-art.github.io/hvaw-show/
+
 Two deliverables live here:
 
 | file | what it is |
@@ -38,7 +40,8 @@ scene.js                     the whole scene, in inches (1 three.js unit == 1 in
 prints.js                    generated — cv-draw thumbnails as data URIs
 vendor/three.global.min.js   generated — three r160, IIFE-wrapped
 make_prints.py               regenerates prints.js from ../cv-draw/out/
-build.py                     inlines everything → dist/layout-standalone.html
+build.py                     inlines everything → docs/index.html (GitHub Pages)
+docs/index.html              generated — the self-contained build Pages serves
 ```
 
 All real-world dimensions live in the `DIM` / `MON` / `PRINT` / `BENCH` / `RACK`
@@ -66,7 +69,7 @@ console while hanging the show.
 
 ```bash
 python3 make_prints.py    # after re-rendering cv-draw
-python3 build.py          # → dist/layout-standalone.html, fully self-contained
+python3 build.py          # → docs/index.html, fully self-contained (Pages serves this)
 ```
 
 ### Rebuilding vendor/three.global.min.js

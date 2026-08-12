@@ -15,7 +15,10 @@ import sys
 
 ROOT = pathlib.Path(__file__).parent
 SRC = ROOT / 'layout.html'
-OUT = ROOT / 'dist' / 'layout-standalone.html'
+
+# docs/ is what GitHub Pages serves; dist/ is the same bytes under the name the
+# published artifact tracks. Both are generated - edit layout.html, not these.
+OUTS = [ROOT / 'docs' / 'index.html', ROOT / 'dist' / 'layout-standalone.html']
 
 SCRIPT_SRC = re.compile(r'[ \t]*<script src="([^"]+)"></script>\n?')
 
@@ -42,12 +45,18 @@ def main() -> int:
     if '<script src=' in built:
         raise SystemExit('a <script src> tag survived inlining')
 
-    OUT.parent.mkdir(exist_ok=True)
-    OUT.write_text(built, encoding='utf-8')
+    for out in OUTS:
+        out.parent.mkdir(exist_ok=True)
+        out.write_text(built, encoding='utf-8')
+
+    # keep Pages from running the file through Jekyll
+    (ROOT / 'docs' / '.nojekyll').touch()
 
     for rel, n in inlined:
         print(f'  inlined {rel:<32} {n / 1024:8.1f} KB')
-    print(f'\n  {OUT.relative_to(ROOT)}  {len(built) / 1024:.1f} KB total')
+    print()
+    for out in OUTS:
+        print(f'  {str(out.relative_to(ROOT)):<32} {len(built) / 1024:8.1f} KB')
     return 0
 
 
