@@ -1,4 +1,4 @@
-# hvaw-show — *Parameters*
+# hvaw-parameters-show — *Parameters*
 
 Planning for a two-week show at **Hayes Valley Art Works**, in the 20′ shipping
 container. Opens ~Aug 25 2026.
@@ -11,7 +11,7 @@ for what a mind is, and we turn it on ourselves. The collective is literal —
 routes to 8 of 128 specialists per token. *Springback* survives as the title of
 the wire work.
 
-**Live 3D previz:** https://dnuke-art.github.io/hvaw-show/
+**Live 3D previz:** https://dnuke-art.github.io/hvaw-parameters-show/
 
 Two deliverables live here:
 
