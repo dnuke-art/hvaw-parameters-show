@@ -1,0 +1,341 @@
+<title>Parameters Layout</title>
+<style>
+  /* Committed dark viewport - this is a previz tool, not a document.
+     Every colour is painted explicitly so it holds on any host ground. */
+  :root {
+    --bg:      #0F1416;
+    --panel:   #161D20;
+    --panel-2: #1E272B;
+    --rule:    #2A3438;
+    --ink:     #DCE4E6;
+    --ink-2:   #93A3A9;
+    --ink-3:   #6B7B81;
+    --steel:   #6FA8C6;
+    --heat:    #DE7B41;
+    --cyan:    #3E7FB5;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+    --sans: "Helvetica Neue", Helvetica, "Segoe UI", Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    overflow: hidden;
+  }
+
+  #app {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    grid-template-columns: 296px minmax(0, 1fr);
+  }
+
+  /* ------------------------------------------------------------- side panel */
+
+  #side {
+    background: var(--panel);
+    border-right: 1px solid var(--rule);
+    overflow-y: auto;
+    padding: 22px 20px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--rule) transparent;
+  }
+
+  .brand h1 {
+    margin: 0;
+    font-size: 27px;
+    font-weight: 800;
+    letter-spacing: -.035em;
+    line-height: 1;
+  }
+  .brand p {
+    margin: 8px 0 0;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: .11em;
+    text-transform: uppercase;
+    color: var(--steel);
+    line-height: 1.55;
+  }
+
+  .grp { display: flex; flex-direction: column; gap: 9px; }
+  .grp > h2 {
+    margin: 0 0 2px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    padding-bottom: 7px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .views { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .grp:has([data-mat]) .views { grid-template-columns: repeat(3, 1fr); }
+  button {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    background: var(--panel-2);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 9px 6px;
+    cursor: pointer;
+  }
+  button:hover { color: var(--ink); border-color: #3C494E; }
+  button.on {
+    color: var(--bg);
+    background: var(--steel);
+    border-color: var(--steel);
+    font-weight: 700;
+  }
+  button:focus-visible, input:focus-visible {
+    outline: 2px solid var(--steel);
+    outline-offset: 2px;
+  }
+
+  label.chk {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--ink-2);
+    cursor: pointer;
+    padding: 1px 0;
+  }
+  label.chk:hover { color: var(--ink); }
+  input[type=checkbox] { accent-color: var(--steel); width: 14px; height: 14px; cursor: pointer; flex: none; }
+
+  .sld { display: flex; flex-direction: column; gap: 5px; }
+  .sld .top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 12.5px;
+    color: var(--ink-2);
+  }
+  .sld .top b {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--steel);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  input[type=range] { width: 100%; accent-color: var(--heat); cursor: pointer; }
+
+  /* ------------------------------------------------------------------ stats */
+
+  #stats { display: flex; flex-direction: column; gap: 1px; }
+  .srow {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--rule);
+    font-size: 12.5px;
+    color: var(--ink-3);
+  }
+  .srow b {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+
+  #warn, #warn-board, #warn-power {
+    display: none;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    line-height: 1.5;
+    color: var(--heat);
+    background: #2A1A11;
+    border: 1px solid var(--heat);
+    border-radius: 3px;
+    padding: 9px 11px;
+  }
+
+  .legend { display: flex; flex-direction: column; gap: 7px; }
+  .lg { display: flex; align-items: center; gap: 9px; font-size: 12px; color: var(--ink-3); }
+  .sw { width: 16px; height: 3px; border-radius: 2px; flex: none; }
+
+  /* ------------------------------------------------------------------ stage */
+
+  #stage { position: relative; background: var(--bg); }
+  #stage canvas { display: block; width: 100%; height: 100%; }
+
+  #walkhint {
+    display: none;
+    position: absolute;
+    left: 50%;
+    bottom: 22px;
+    transform: translateX(-50%);
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    background: rgba(15,20,22,.85);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 8px 14px;
+    white-space: nowrap;
+  }
+
+  #tag {
+    position: absolute;
+    right: 16px;
+    top: 14px;
+    text-align: right;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    line-height: 1.75;
+    pointer-events: none;
+  }
+  #tag b { font-weight: 400; }
+  #tag .a { color: var(--steel); }
+  #tag .b { color: var(--cyan); }
+  #tag .c { color: var(--heat); }
+
+  @media (max-width: 860px) {
+    #app { grid-template-columns: 1fr; grid-template-rows: 46vh 1fr; }
+    #side { border-right: none; border-bottom: 1px solid var(--rule); }
+    #tag { font-size: 9px; }
+  }
+</style>
+
+<div id="app">
+
+  <aside id="side">
+    <div class="brand">
+      <h1>Parameters</h1>
+      <p>HVAW &middot; 20&prime; container<br>Layout previz</p>
+    </div>
+
+    <div class="grp">
+      <h2>View</h2>
+      <div class="views">
+        <button data-view="orbit" class="on">Corridor</button>
+        <button data-view="plan">Plan</button>
+        <button data-view="wallA">The mind</button>
+        <button data-view="wallB">The record</button>
+        <button data-view="hero">Walk in</button>
+        <button data-view="door">At the door</button>
+      </div>
+    </div>
+
+    <div class="grp">
+      <h2>Show / hide</h2>
+      <label class="chk"><input type="checkbox" id="t-ceiling"> Ceiling</label>
+      <label class="chk"><input type="checkbox" id="t-hicube"> High-cube (8&prime;10&Prime;)</label>
+      <label class="chk"><input type="checkbox" id="t-boards" checked> Mounting boards</label>
+      <label class="chk"><input type="checkbox" id="t-screens" checked> Screens live</label>
+      <label class="chk"><input type="checkbox" id="t-backlight" checked> Backlit frames</label>
+      <label class="chk"><input type="checkbox" id="t-cyano" checked> Cyanotypes (off = cv-draw prints)</label>
+      <label class="chk"><input type="checkbox" id="t-sight" checked> Sightline</label>
+      <label class="chk"><input type="checkbox" id="t-channel" checked> 3&prime; clear channel</label>
+      <label class="chk"><input type="checkbox" id="t-heart" checked> M&ouml;bius heart on plinth</label>
+      <label class="chk"><input type="checkbox" id="t-figure" checked> Figure (5&prime;10&Prime;)</label>
+    </div>
+
+    <div class="grp">
+      <h2>Frame material</h2>
+      <div class="views">
+        <button data-mat="steel" class="on">Steel</button>
+        <button data-mat="ply">Plywood</button>
+        <button data-mat="acrylic">Acrylic</button>
+      </div>
+    </div>
+
+    <div class="grp">
+      <h2>Boards</h2>
+      <div class="sld">
+        <div class="top"><span>Board top</span><b id="v-btop">80&Prime;</b></div>
+        <input type="range" id="s-btop" min="40" max="94" step="1" value="80">
+      </div>
+      <div class="sld">
+        <div class="top"><span>Board bottom</span><b id="v-bbot">32&Prime;</b></div>
+        <input type="range" id="s-bbot" min="0" max="60" step="1" value="32">
+      </div>
+      <div id="warn-board">Something is hung off the boards &mdash; nothing to screw into at that height.</div>
+    </div>
+
+    <div class="grp">
+      <h2>Hang</h2>
+      <div class="sld">
+        <div class="top"><span>Monitor centre height</span><b id="v-monh">57&Prime;</b></div>
+        <input type="range" id="s-monh" min="44" max="70" step="1" value="57">
+      </div>
+      <div class="sld">
+        <div class="top"><span>Flat work height</span><b id="v-printh">18&Prime;</b></div>
+        <input type="range" id="s-printh" min="12" max="30" step="1" value="18">
+      </div>
+      <div class="sld">
+        <div class="top"><span>Figure position</span><b id="v-figx">8&prime;</b></div>
+        <input type="range" id="s-figx" min="0" max="200" step="4" value="96">
+      </div>
+      <div class="sld">
+        <div class="top"><span>Wire pieces on rack</span><b id="v-pieces">day 3</b></div>
+        <input type="range" id="s-pieces" min="0" max="12" step="1" value="6">
+      </div>
+    </div>
+
+    <div class="grp">
+      <h2>Measures</h2>
+      <div id="stats"></div>
+      <div id="warn">Clear channel is under 3&prime;. Circulation fails &mdash; pull the monitors flatter or lose a piece.</div>
+    </div>
+
+    <div class="grp">
+      <h2>Inverter budget</h2>
+      <div class="sld">
+        <div class="top"><span>Usable bank</span><b id="v-batt">2.0 kWh</b></div>
+        <input type="range" id="s-batt" min="5" max="100" step="1" value="20">
+      </div>
+      <div class="sld">
+        <div class="top"><span>Hours open per day</span><b id="v-hours">4 h</b></div>
+        <input type="range" id="s-hours" min="2" max="12" step="1" value="4">
+      </div>
+      <div id="power"></div>
+      <div id="warn-power">Bank won&rsquo;t last the day. Drop screens, duty-cycle the bender, or plan a swap.</div>
+    </div>
+
+    <div class="grp">
+      <h2>Key</h2>
+      <div class="legend">
+        <div class="lg"><span class="sw" style="background:#6FA8C6"></span>19&prime; sightline to the machine</div>
+        <div class="lg"><span class="sw" style="background:#DE7B41"></span>3&prime; circulation channel</div>
+        <div class="lg"><span class="sw" style="background:#93A3A9"></span>7&prime;8&Prime; max standoff</div>
+        <div class="lg"><span class="sw" style="background:#D8C15A"></span>the ethernet run &mdash; one model, two boards</div>
+      </div>
+    </div>
+  </aside>
+
+  <div id="stage">
+    <div id="tag">
+      Left &middot; <b class="a">the mind</b> &mdash; 4 portrait panels, cut + backlit, 13&prime; of wire between boards<br>
+      Right &middot; <b class="b">the record</b> &mdash; sculpture + the shadow it cast<br>
+      Back &middot; <b class="c">the body</b> &mdash; the bender + what it made
+    </div>
+    <div id="walkhint">Drag to look &middot; scroll or &uarr;&darr; to walk the corridor</div>
+  </div>
+
+</div>
+
+<script src="vendor/three.global.min.js"></script>
+<script src="prints.js"></script>
+<script src="scene.js"></script>

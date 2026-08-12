@@ -1,0 +1,11 @@
+# build output — regenerate with `python3 build.py`
+dist/
+
+# three.js sources that vendor/three.global.min.js is derived from.
+# Only the generated global build is committed, so the page runs off disk;
+# see README for how to regenerate it from npm.
+vendor/three.module.js
+vendor/three.module.min.js
+
+__pycache__/
+*.pyc

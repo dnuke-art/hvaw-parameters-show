@@ -1,0 +1,885 @@
+<title>Parameters</title>
+<style>
+  :root {
+    --ground:   #EFF1F0;
+    --panel:    #FFFFFF;
+    --panel-2:  #E4E8E8;
+    --ink:      #14181B;
+    --ink-2:    #48585E;
+    --ink-3:    #79878C;
+    --rule:     #CDD4D5;
+    --rule-2:   #B3BDBF;
+    --steel:    #2F5F79;
+    --steel-2:  #4A7E99;
+    --heat:     #B3501B;
+    --heat-bg:  #F6E7DC;
+    --go:       #2F6B4F;
+    --go-bg:    #E0EDE5;
+    --shadow:   0 1px 2px rgba(20,24,27,.07), 0 6px 18px -10px rgba(20,24,27,.18);
+
+    --sans: "Helvetica Neue", Helvetica, "Segoe UI", Arial, sans-serif;
+    --serif: Charter, "Bitstream Charter", "Sitka Text", Cambria, Georgia, serif;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:  #121618;
+      --panel:   #1B2124;
+      --panel-2: #242C30;
+      --ink:     #E3E9EA;
+      --ink-2:   #A3B1B6;
+      --ink-3:   #77878D;
+      --rule:    #2E383C;
+      --rule-2:  #3D4A4F;
+      --steel:   #8CB9D1;
+      --steel-2: #6E9FB9;
+      --heat:    #E08A57;
+      --heat-bg: #33231A;
+      --go:      #7FC2A0;
+      --go-bg:   #172A21;
+      --shadow:  0 1px 2px rgba(0,0,0,.4), 0 6px 18px -10px rgba(0,0,0,.6);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground:  #121618;
+    --panel:   #1B2124;
+    --panel-2: #242C30;
+    --ink:     #E3E9EA;
+    --ink-2:   #A3B1B6;
+    --ink-3:   #77878D;
+    --rule:    #2E383C;
+    --rule-2:  #3D4A4F;
+    --steel:   #8CB9D1;
+    --steel-2: #6E9FB9;
+    --heat:    #E08A57;
+    --heat-bg: #33231A;
+    --go:      #7FC2A0;
+    --go-bg:   #172A21;
+    --shadow:  0 1px 2px rgba(0,0,0,.4), 0 6px 18px -10px rgba(0,0,0,.6);
+  }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 17px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 28px 120px;
+  }
+
+  /* ---------- masthead ---------- */
+
+  .mast {
+    padding: 72px 0 40px;
+    border-bottom: 2px solid var(--ink);
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--steel);
+    margin-bottom: 22px;
+  }
+  h1 {
+    font-family: var(--sans);
+    font-weight: 800;
+    font-size: clamp(52px, 11vw, 104px);
+    line-height: .92;
+    letter-spacing: -.035em;
+    text-wrap: balance;
+    margin-bottom: 20px;
+  }
+  .deck {
+    font-size: clamp(19px, 2.4vw, 23px);
+    line-height: 1.45;
+    color: var(--ink-2);
+    max-width: 34em;
+    text-wrap: pretty;
+  }
+
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 8px;
+  }
+  .fact {
+    background: var(--ground);
+    padding: 18px 4px 20px;
+  }
+  .fact dt {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 7px;
+  }
+  .fact dd {
+    font-family: var(--sans);
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -.01em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- sections: mono spine + content ---------- */
+
+  section {
+    display: grid;
+    grid-template-columns: 128px minmax(0, 1fr);
+    gap: 40px;
+    padding: 54px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .spine {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    line-height: 1.5;
+    padding-top: .55em;
+  }
+  .spine b {
+    display: block;
+    color: var(--steel);
+    font-weight: 400;
+  }
+  .body > * + * { margin-top: 1.05em; }
+  .body > h2 + * { margin-top: .7em; }
+
+  h2 {
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: clamp(27px, 3.6vw, 36px);
+    line-height: 1.1;
+    letter-spacing: -.028em;
+    text-wrap: balance;
+  }
+  h3 {
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 16.5px;
+    letter-spacing: -.005em;
+    margin-top: 2em !important;
+  }
+  p { max-width: 66ch; text-wrap: pretty; }
+  strong { font-weight: 600; }
+  em.term {
+    font-style: normal;
+    font-family: var(--mono);
+    font-size: .88em;
+    background: var(--panel-2);
+    padding: .1em .35em;
+    border-radius: 2px;
+  }
+  a { color: var(--steel); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:focus-visible, summary:focus-visible {
+    outline: 2px solid var(--steel);
+    outline-offset: 3px;
+  }
+
+  ul.plain { list-style: none; max-width: 66ch; }
+  ul.plain li {
+    padding-left: 22px;
+    position: relative;
+    margin-top: .5em;
+  }
+  ul.plain li::before {
+    content: "";
+    position: absolute;
+    left: 2px; top: .68em;
+    width: 7px; height: 1.5px;
+    background: var(--rule-2);
+  }
+
+  /* ---------- pull statement ---------- */
+
+  .pull {
+    border-left: 3px solid var(--steel);
+    padding: 4px 0 4px 22px;
+    font-family: var(--sans);
+    font-size: clamp(20px, 2.6vw, 25px);
+    font-weight: 600;
+    line-height: 1.28;
+    letter-spacing: -.02em;
+    max-width: 24em;
+    text-wrap: balance;
+  }
+
+  /* ---------- container plan ---------- */
+
+  figure { margin-top: 2em !important; }
+  .planbox {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 22px 20px 14px;
+    box-shadow: var(--shadow);
+    overflow-x: auto;
+  }
+  .planbox svg { display: block; min-width: 540px; width: 100%; height: auto; }
+  figcaption {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    line-height: 1.6;
+    color: var(--ink-3);
+    margin-top: 12px;
+    letter-spacing: .01em;
+  }
+
+  /* ---------- tables ---------- */
+
+  .scroll { overflow-x: auto; margin-top: 1.6em !important; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 580px;
+    font-family: var(--sans);
+    font-size: 14.5px;
+    line-height: 1.45;
+  }
+  caption {
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    padding-bottom: 10px;
+  }
+  th {
+    text-align: left;
+    font-weight: 600;
+    font-size: 11px;
+    font-family: var(--mono);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    padding: 0 14px 9px 0;
+    border-bottom: 1.5px solid var(--ink);
+    vertical-align: bottom;
+  }
+  td {
+    padding: 12px 14px 12px 0;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  td:first-child { font-weight: 600; }
+  tbody tr:last-child td { border-bottom: none; }
+  .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  .pill {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    padding: 3px 8px 2.5px;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+  .p-hi   { background: var(--heat-bg); color: var(--heat); }
+  .p-mid  { background: var(--panel-2); color: var(--ink-2); }
+  .p-lo   { background: var(--go-bg);   color: var(--go); }
+
+  /* ---------- schedule ---------- */
+
+  .days { border-top: 1.5px solid var(--ink); margin-top: 1.4em !important; }
+  .day {
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: 24px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .day .when {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    line-height: 1.5;
+    color: var(--ink-2);
+    font-variant-numeric: tabular-nums;
+    padding-top: .2em;
+  }
+  .day .when span { display: block; color: var(--ink-3); }
+  .day .what { font-size: 15.5px; line-height: 1.55; }
+  .day .what b { font-family: var(--sans); font-weight: 700; font-size: 15px; }
+  .day ul.plain li { font-size: 15px; }
+
+  .gate {
+    background: var(--heat-bg);
+    border: 1px solid var(--heat);
+    border-radius: 3px;
+    padding: 20px 22px;
+    margin: 22px 0;
+  }
+  .gate .lab {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--heat);
+    margin-bottom: 9px;
+  }
+  .gate p { font-size: 15.5px; max-width: 60ch; }
+  .gate p + p { margin-top: .7em; }
+
+  .weekhead {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--steel);
+    margin-top: 2.4em !important;
+    padding-bottom: 6px;
+  }
+
+  /* ---------- risk ---------- */
+
+  .risks { display: grid; gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 3px; margin-top: 1.6em !important; }
+  .risk { background: var(--panel); padding: 17px 19px; display: grid; grid-template-columns: 26px minmax(0,1fr); gap: 14px; }
+  .risk .n { font-family: var(--mono); font-size: 12px; color: var(--ink-3); padding-top: .25em; font-variant-numeric: tabular-nums; }
+  .risk h4 { font-family: var(--sans); font-size: 15.5px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 3px; }
+  .risk p { font-size: 14.5px; line-height: 1.5; color: var(--ink-2); max-width: 62ch; }
+
+  footer {
+    padding: 40px 0 0;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--ink-3);
+    line-height: 1.7;
+  }
+
+  @media (max-width: 720px) {
+    body { font-size: 16.5px; }
+    .wrap { padding: 0 20px 80px; }
+    section { grid-template-columns: 1fr; gap: 14px; padding: 42px 0; }
+    .spine { padding-top: 0; }
+    .spine b { display: inline; }
+    .day { grid-template-columns: 1fr; gap: 6px; }
+    .day .when span { display: inline; }
+    .mast { padding: 48px 0 32px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="mast">
+    <div class="eyebrow">Show plan · Hayes Valley Art Works · 20&#8242; container</div>
+    <h1>Parameters</h1>
+    <p class="deck">How AI changes the way we see ourselves. A two-week plan for a show about minds that are split, routed, observed &mdash; and a machine that keeps working while the doors are open.</p>
+  </header>
+
+  <dl class="facts">
+    <div class="fact"><dt>Prep window</dt><dd>Aug 11 &ndash; 24</dd></div>
+    <div class="fact"><dt>Load-in</dt><dd>Mon Aug 24</dd></div>
+    <div class="fact"><dt>Opens</dt><dd>Tue Aug 25</dd></div>
+    <div class="fact"><dt>Format</dt><dd>Multi-day, 4 h/day</dd></div>
+    <div class="fact"><dt>Walls</dt><dd>Screens / objects / machine</dd></div>
+  </dl>
+
+  <section>
+    <div class="spine"><b>01</b> Concept</div>
+    <div class="body">
+      <h2>A word that means two things at once</h2>
+      <p>In a model, <strong>parameters</strong> are the weights &mdash; thirty billion of them, of which about three and a half billion fire for any given token. In a life, parameters are the limits you work inside: the parameters of a conversation, of a job, of a self.</p>
+      <p>The show is about the second meaning arriving through the first. <strong>AI hands us a new vocabulary for what a mind is, and we don&rsquo;t leave it on the machines.</strong> We turn it on ourselves &mdash; and the picture that comes back is not a single unified thinker. It is a committee, distributed across hardware, most of it idle at any moment.</p>
+      <div class="pull">You watch a router pick eight experts out of a hundred and twenty-eight, and you think: oh. That&rsquo;s me, deciding.</div>
+      <p>None of this is speculative for you. It is already written down across your repos, and the show&rsquo;s job is to make it physical:</p>
+      <ul class="plain">
+        <li><em class="term">consciousness-hacks</em> already asks the question the show asks &mdash; <em>is consciousness inherently biological, or could it exist in another substrate?</em> That is the wall text, more or less.</li>
+        <li><em class="term">pansophist</em> rebuilds knowledge around the <strong>observer</strong>, on the grounds that treating facts as ownerless &ldquo;is useful for encyclopedias &mdash; it is not how a mind works.&rdquo; You have already written a theory of selfhood, in code.</li>
+        <li><em class="term">distributed-70b</em> splits a 42.5&nbsp;GB model across two Xaviers, board one holding half the layers and streaming activations to board two over gigabit ethernet. One mind, two bodies, and a cable you can point at.</li>
+        <li><strong>Mixture-of-experts.</strong> Eight of a hundred and twenty-eight specialists per token; a single cold token in <em class="term">colibri</em> costs eleven gigabytes of random expert reads across seventy-five layers.</li>
+      </ul>
+      <p>That last one is the load-bearing move. A mixture-of-experts model is not <em>like</em> a committee &mdash; it <em>is</em> one, and the show puts it in a steel box where a visitor can stand between the two halves of a single mind and see the wire joining them.</p>
+      <p>The competitive position is unchanged and if anything sharper. Hayes Valley will see plenty of diffusion prints this year. <strong>This is not a show of AI images. It is a show about what AI does to your self-image</strong> &mdash; and it is the only one in the neighbourhood with a 70B model running on two boards fifteen feet apart.</p>
+      <p class="num" style="color:var(--ink-3);font-size:14.5px;"><em class="term">Springback</em> survives as the title of the wire work &mdash; the machine still overbends by exactly the amount the world takes back. It just isn&rsquo;t the whole thesis any more.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="spine"><b>02</b> The space</div>
+    <div class="body">
+      <h2>A 20&#8242; container is a corridor, not a room</h2>
+      <p>This is the constraint that should drive every hang decision, and it&rsquo;s the one most easily forgotten while planning on a screen. Standard 20&#8242; interior runs about <strong>19&#8242;4&#8243; long &times; 7&#8242;8&#8243; wide &times; 7&#8242;10&#8243; high</strong> (a high-cube gives you 8&#8242;10&#8243;). Confirm the real numbers with HVAW before you cut anything.</p>
+      <p>The consequence: <strong>nobody can stand more than about seven feet from a long wall</strong>, and with visitors in the box, realistically three or four. Long walls get read up close and obliquely, in sequence, as you walk. Only the back wall has a genuine sightline &mdash; a nineteen-foot approach that starts the moment someone steps through the doors.</p>
+
+      <figure>
+        <div class="planbox">
+          <svg viewBox="0 0 268 148" role="img" aria-label="Plan view of the 20-foot container showing the render wall along the top long wall, the compute wall along the bottom long wall, the wirebender at the far back wall, and sightline dimensions.">
+            <g font-family="ui-monospace, Menlo, Consolas, monospace">
+
+              <!-- container shell -->
+              <rect x="18" y="34" width="232" height="92" fill="var(--panel-2)" stroke="var(--ink)" stroke-width="2.2"/>
+
+              <!-- entrance / doors -->
+              <line x1="18" y1="34" x2="18" y2="126" stroke="var(--heat)" stroke-width="3.4"/>
+              <path d="M18 34 L4 20" stroke="var(--rule-2)" stroke-width="1.4" fill="none" stroke-dasharray="3 2.5"/>
+              <path d="M18 126 L4 140" stroke="var(--rule-2)" stroke-width="1.4" fill="none" stroke-dasharray="3 2.5"/>
+              <text x="14" y="83" font-size="6.4" fill="var(--heat)" text-anchor="middle" transform="rotate(-90 14 83)" letter-spacing=".1">ENTRANCE</text>
+
+              <!-- object wall (top) : cyanotypes alternating with sculpture brackets -->
+              <g fill="var(--steel)">
+                <rect x="38"  y="35.4" width="20" height="6.4"/>
+                <rect x="102" y="35.4" width="20" height="6.4"/>
+                <rect x="166" y="35.4" width="20" height="6.4"/>
+              </g>
+              <g fill="var(--ink-3)">
+                <rect x="72"  y="35.4" width="18" height="4.2"/>
+                <rect x="136" y="35.4" width="18" height="4.2"/>
+              </g>
+              <text x="119" y="29" font-size="6.6" fill="var(--ink)" text-anchor="middle" font-weight="600" letter-spacing=".08">THE RECORD &mdash; sculpture + its shadow</text>
+
+              <!-- compute wall (bottom) : monitors + jetsons -->
+              <g fill="var(--ink)">
+                <rect x="40"  y="118.2" width="30" height="6.4"/>
+                <rect x="76"  y="118.2" width="30" height="6.4"/>
+                <rect x="112" y="118.2" width="30" height="6.4"/>
+                <rect x="148" y="118.2" width="30" height="6.4"/>
+              </g>
+              <g fill="var(--heat)">
+                <rect x="52" y="112.4" width="9" height="4"/>
+                <rect x="124" y="112.4" width="9" height="4"/>
+              </g>
+              <text x="109" y="138" font-size="6.6" fill="var(--ink)" text-anchor="middle" font-weight="600" letter-spacing=".08">THE MIND &mdash; 4 portrait, cut steel</text>
+
+              <!-- back wall : the machine -->
+              <rect x="238" y="52" width="10.6" height="56" fill="var(--heat)"/>
+              <rect x="214" y="66" width="22" height="28" fill="none" stroke="var(--ink)" stroke-width="1.5"/>
+              <text x="225" y="83" font-size="5.4" fill="var(--ink)" text-anchor="middle" font-weight="600">BENDER</text>
+              <text x="259" y="80" font-size="6.4" fill="var(--heat)" text-anchor="middle" transform="rotate(90 259 80)" letter-spacing=".1" font-weight="600">HERO WALL</text>
+
+              <!-- long sightline -->
+              <line x1="24" y1="80" x2="210" y2="80" stroke="var(--steel-2)" stroke-width="1.1" stroke-dasharray="5 3.5"/>
+              <path d="M204 76.6 L211 80 L204 83.4 Z" fill="var(--steel-2)"/>
+              <rect x="82" y="73.6" width="64" height="12.6" fill="var(--panel-2)"/>
+              <text x="114" y="82.4" font-size="6.2" fill="var(--steel)" text-anchor="middle" letter-spacing=".06">19&#8242; approach &rarr;</text>
+
+              <!-- short standoff -->
+              <line x1="196" y1="42" x2="196" y2="112" stroke="var(--ink-3)" stroke-width=".9"/>
+              <path d="M192.8 47 L196 41 L199.2 47 Z" fill="var(--ink-3)"/>
+              <path d="M192.8 107 L196 113 L199.2 107 Z" fill="var(--ink-3)"/>
+              <text x="190" y="79" font-size="5.8" fill="var(--ink-3)" text-anchor="middle" transform="rotate(-90 190 79)">7&#8242;8&#8243; max standoff</text>
+            </g>
+          </svg>
+        </div>
+        <figcaption>Plan view, entrance at left. The only long sightline in the box runs the length of the floor and lands on the machine. Everything on a long wall is read from three feet away, in the order people walk past it.<br><br>Walk it in 3D &mdash; <a href="https://claude.ai/code/artifact/95c7ba82-f981-4bc3-a176-9dca45832109">Parameters Layout</a> &mdash; with hang heights, sightlines, and a cyanotype/print A/B on live sliders.</figcaption>
+      </figure>
+
+      <h3>Wall assignments</h3>
+      <ul class="plain">
+        <li><strong>Left long wall &mdash; the mind.</strong> Four 27&#8243; panels hung <strong>portrait</strong> in plasma-cut steel surrounds you fabricate, spread across fifteen feet at 57&#8243; centre. A Xavier rides in the outer two frames, so the ethernet between them runs thirteen feet in the open. See section 07.</li>
+        <li><strong>Right long wall &mdash; the object wall.</strong> Physical work, deliberately not a second wall of screens: bent-wire sculpture on brackets, alternating with the cyanotype each piece cast. Object and its own shadow-image, adjacent. See section 05.</li>
+        <li><strong>Back wall &mdash; the machine.</strong> Wirebender on a bench, lit hard and alone, with a rack above it for what it makes.</li>
+        <li><strong>Entrance.</strong> Title and one paragraph of wall text, eighty words maximum. People read it standing in the doorway, blocking the only door. Keep it short for circulation reasons as much as literary ones.</li>
+      </ul>
+      <p>Keep a <strong>36&#8243; clear channel</strong> down the middle. Anything on the floor eats the only circulation you have, and the box comfortably holds eight to twelve people before it stops being viewable.</p>
+
+      <h3>What you mount into</h3>
+      <p>The gallery hangs wooden boards on the container sides. That kills the plan&rsquo;s biggest unknown outright &mdash; you are screwing into wood, not trying to defeat corrugated steel &mdash; and it replaces it with a smaller, sharper one.</p>
+      <div class="pull">The boards are a band, not a wall. Anything hung outside it has nothing behind it.</div>
+      <p><strong>Measure the top and bottom height of the board run on day one.</strong> That single pair of numbers now governs every hang decision in the show, and it is the one input the 3D model can&rsquo;t guess for you. Monitors at 57&#8243; centre need roughly 43&ndash;71&#8243; of board behind them; 18&#8243; flat work at 60&#8243; needs 51&ndash;69&#8243;. A typical 4&#8242; band clears both comfortably, a 2&#8242; ledger strip does not.</p>
+      <p>Two consequences worth planning around:</p>
+      <ul class="plain">
+        <li><strong>The gap behind the boards is a gift.</strong> Furring holds them off the corrugation, so there is a cable void the full length of both walls. Route everything behind it. With four displays and two Xaviers, that void is the difference between a wall and a cable nest &mdash; and cable management is the thing that most reliably separates a show from a workshop.</li>
+        <li><strong>Ask what the boards are rated to carry.</strong> Four 27&#8243; panels plus mounts is fifty to seventy pounds hung off one board run. If they simply hook over cleats, spread the monitors along more of the run rather than clustering them, and put the Xaviers on the floor or a plinth instead of a wall shelf.</li>
+      </ul>
+      <p>The boards cost you about two inches of width per side. It doesn&rsquo;t bite &mdash; the clear channel still measures 6&#8242;8&#8243;.</p>
+
+      <h3>Power is now an energy budget</h3>
+      <p>Running off your inverter answers &ldquo;is there power?&rdquo; and replaces it with a harder question. Mains is a <em>wattage</em> constraint you almost certainly satisfy; a battery is a <em>watt-hour</em> constraint that decides whether you reach closing time.</p>
+      <div class="scroll">
+        <table>
+          <caption>Typical draw, not peak &mdash; meter yours before you trust it</caption>
+          <thead><tr><th>Load</th><th class="num">Watts</th><th>Note</th></tr></thead>
+          <tbody>
+            <tr><td>4 &times; 27&#8243; panels</td><td class="num">120</td><td>The single biggest line, and the easiest to cut</td></tr>
+            <tr><td>2 &times; AGX Xavier</td><td class="num">60</td><td>MAXN. One board at 30 W runs three of the four panes</td></tr>
+            <tr><td>Wirebender</td><td class="num">70</td><td>Only while actually bending &mdash; duty-cycle it</td></tr>
+            <tr><td>Track lighting</td><td class="num">45</td><td>LED; halogen would double your whole budget</td></tr>
+            <tr><td><strong>Continuous</strong></td><td class="num"><strong>295</strong></td><td>1.18 kWh over a 4-hour day</td></tr>
+            <tr><td>+ UV panel</td><td class="num">355</td><td>Exposures only</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><strong>At four hours a day, this is comfortable.</strong> A 2&nbsp;kWh usable bank at 85% conversion runs 5.8 hours against a 4-hour day &mdash; <strong>44% headroom</strong>, which is real margin rather than a number that merely clears. You need about 1.4&nbsp;kWh of bank to cover the day at all, so you are carrying roughly 40% more than the minimum.</p>
+      <div class="pull">Four hours turns the energy budget from a design constraint back into a checkbox. Spend the attention on the machine instead.</div>
+      <p>That margin is worth having, because it absorbs the things that don&rsquo;t appear in the table: a hot afternoon, a bender that runs more than you planned, a battery a few years into its life, and the UV panel if you decide to expose during open hours (running it continuously still clears four hours, but only by 48 minutes &mdash; so expose between sessions rather than through them).</p>
+      <p>The real logistics question is no longer runtime, it&rsquo;s <strong>turnaround</strong>: 1.18&nbsp;kWh has to go back into the bank between days. Over a multi-day run that is the thing to have a plan for, and it needs shore power somewhere &mdash; at home is fine, but then the bank travels with you daily.</p>
+      <p>Three things to check on the inverter itself before you rely on it. None are capacity questions, and all three still apply:</p>
+      <ul class="plain">
+        <li><strong>Pure sine, not modified sine.</strong> The switching supplies in monitors and Jetson bricks buzz audibly on modified sine, and some refuse to run at all. In a silent steel box, an audible buzz is a real problem.</li>
+        <li><strong>Surge rating, not just continuous.</strong> Displays and stepper drivers both draw inrush. Stagger power-up rather than switching everything on at once.</li>
+        <li><strong>Where it recharges.</strong> If there is no shore power anywhere on site, you are carrying batteries home nightly, and that is a logistics task nobody has scheduled yet.</li>
+      </ul>
+      <p>You no longer need to cut load to make the day, so keep both Xaviers &mdash; the second one is doing real work on that wall. Hold &ldquo;drop to one Xavier, play the sim pane off a Pi&rdquo; in reserve as the lever to pull if metering comes in high, not as something to do pre-emptively.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="spine"><b>03</b> The move</div>
+    <div class="body">
+      <h2>Let the machine make the show while the show is open</h2>
+      <p>You asked whether you have enough art to fill the container. The honest answer is that you have more than enough &mdash; but the question dissolves entirely once the bender runs a production loop for the length of the run.</p>
+      <p>Each piece it bends gets hung on a grid rack on the back wall. Day one there are three. Day five there are twenty. <strong>The wall fills as the show runs</strong>, and someone who comes on closing day sees a different exhibition than someone who came to the opening.</p>
+      <p>Note what the four-hour day does to the rate: the machine bends only while you are present. That is the right call anyway &mdash; an unattended bender can jam, and leaving it running overnight would eat the battery several times over &mdash; but it means output is bounded at four hours a day, so size the rack for the run you actually have rather than for continuous operation.</p>
+      <div class="pull">You don&rsquo;t need a finished body of wire sculpture. You need a machine that is still working.</div>
+      <p>This is stronger than pre-made sculpture on every axis that matters. It removes the inventory question. It puts the machine on stage instead of hiding it as a tool that made the real objects offsite. And it is the literal thesis &mdash; model to material, with the gap visible in the room.</p>
+      <p>It also de-risks the hardest task in the plan, <em>provided you design the fallback rather than improvise it</em>. If calibration doesn&rsquo;t land, the machine sits as an object with its own MuJoCo simulation running on a panel beside it, and the rack holds whatever you bent by hand. Titled deliberately &mdash; <em>the model, without the metal</em> &mdash; that reads as a legitimate piece, not a visible failure. The difference is entirely whether you decided it on Aug 17 or discovered it on Aug 24.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="spine"><b>04</b> Inventory</div>
+    <div class="body">
+      <h2>Six bodies of work, room for four</h2>
+      <p>The constraint isn&rsquo;t supply. It&rsquo;s curatorial discipline &mdash; six projects in a 20&#8242; box is a portfolio, and four tightly argued is a show.</p>
+      <div class="scroll">
+        <table>
+          <caption>Audited against the repos, Aug 11</caption>
+          <thead>
+            <tr><th>Work</th><th>Actual state</th><th>Role</th><th>Lift</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>wirebender</td>
+              <td>Assembled, uncalibrated. CAD, sim, slicer and planner all done; bench validation entirely open.</td>
+              <td>Back wall centrepiece, live production</td>
+              <td><span class="pill p-hi">High</span></td>
+            </tr>
+            <tr>
+              <td>photograms</td>
+              <td>Not started. Cheapest, fastest new work available to you &mdash; and the one that closes the show&rsquo;s loop.</td>
+              <td>Object wall, paired with the sculpture that cast each one</td>
+              <td><span class="pill p-mid">Medium</span></td>
+            </tr>
+            <tr>
+              <td>cv-draw</td>
+              <td>12 finished images &mdash; but web resolution only. See section 06.</td>
+              <td>Screen piece; prints now optional</td>
+              <td><span class="pill p-mid">Medium</span></td>
+            </tr>
+            <tr>
+              <td>jetson-llm</td>
+              <td>Real, working, benchmarked. Two Xaviers, models up to 744B reachable.</td>
+              <td>Compute wall, live inference</td>
+              <td><span class="pill p-mid">Medium</span></td>
+            </tr>
+            <tr>
+              <td>entropy-brush</td>
+              <td>Flutter app, desktop, runs.</td>
+              <td>Compute wall, interactive station</td>
+              <td><span class="pill p-mid">Medium</span></td>
+            </tr>
+            <tr>
+              <td>mobius-led-heart</td>
+              <td>three.js simulator plus CAD. Nothing built.</td>
+              <td>Printed parts as shadow-casters</td>
+              <td><span class="pill p-lo">Low</span></td>
+            </tr>
+            <tr>
+              <td>megamop</td>
+              <td>Printed object, renders, turntable.</td>
+              <td>Printed parts as shadow-casters</td>
+              <td><span class="pill p-lo">Low</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p><strong>Still cut <em class="term">mobius-led-heart</em> and <em class="term">megamop</em> as exhibited objects.</strong> Neither belongs to this argument &mdash; one is LED sculpture, the other a street tool, and each would pull the show toward &ldquo;things Dan makes&rdquo; and away from a claim about models and matter.</p>
+      <p>But the photograms give them a way back in. Their printed parts &mdash; the cycloid discs, the dome cap&rsquo;s hole grid, the heart&rsquo;s spine sections &mdash; are excellent shadow-casters, and a hole grid in particular reads beautifully as a photogram. <strong>They enter the show as light rather than as objects</strong>, which is a better fate than a crowded corner.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="spine"><b>05</b> Photograms</div>
+    <div class="body">
+      <h2>Shadow through steel onto sensitised paper</h2>
+      <p>This is the strongest idea in the show and it should be built, not filed. A photogram is a <em>contact</em> image: the object&rsquo;s own shadow at 1:1, made without a lens, a sensor, or a single line of code.</p>
+      <div class="pull">In a show about the distance between a model and its material, the photogram is the far end of the scale &mdash; no model at all.</div>
+      <p>It earns its place three ways.</p>
+      <ul class="plain">
+        <li><strong>It completes the causal chain.</strong> G-code becomes steel, steel casts a shadow, the shadow becomes an image. Four transformations, each losing a little fidelity to the one before it. That is springback happening four times in a row, and it is visible on one wall.</li>
+        <li><strong>It sets up the show&rsquo;s only real gradient.</strong> The screens carry light that was <em>computed</em> &mdash; <em class="term">cv-draw</em>&rsquo;s path tracer deriving radiance from first principles. The object wall carries light that simply <em>fell</em>. Same subject, opposite ends of the method.</li>
+        <li><strong>It is the only new work you can reliably finish in two weeks.</strong> No vendor, no lead time, same-day feedback. A failed sheet costs twenty minutes.</li>
+      </ul>
+
+      <h3>Cyanotype, not the alternatives</h3>
+      <p>Use cyanotype. It is iron-based, washes out in plain water, needs no darkroom (a dim room is enough), and tolerates sloppy handling. <strong>Buy pre-coated paper</strong> for this show &mdash; hand-coating is a week-three luxury and a week-one liability.</p>
+      <p>Lumen prints on expired silver paper are gorgeous and wrong for a deadline: hours to days of exposure, and they won&rsquo;t fix reliably. Van Dyke gets you brown instead of blue and adds chemistry for no gain here. Decide once, in favour of the robust process, and spend the saved attention on the shadows themselves.</p>
+
+      <h3>The fog problem, and the fix that&rsquo;s better than sun</h3>
+      <p>August in San Francisco is overcast. Sun exposure will be unreliable and, worse, unrepeatable &mdash; you cannot tune an image when the light changes between sheets.</p>
+      <p><strong>Buy a 395&nbsp;nm UV LED panel.</strong> Five to fifteen minute exposures, weather-independent, and identical every time. It also runs indoors, which means <em>exposures can happen inside the container during the show</em> &mdash; the object wall can accumulate exactly the way the wire rack does.</p>
+
+      <h3>Two techniques &mdash; do both, lead with the second</h3>
+      <ul class="plain">
+        <li><strong>Contact.</strong> Sculpture laid on the paper, diffuse UV above. Sharp, 1:1, essentially cannot fail. This is your baseline and your insurance.</li>
+        <li><strong>Point-source projection.</strong> A single small emitter at a distance, so the shadow magnifies and goes perspectival &mdash; a six-inch wire piece throws a two-foot image, and the wire nearest the paper stays crisp while the far end blooms. Much more dramatic, and much more yours.</li>
+      </ul>
+      <p>The physics that governs the second one: <strong>penumbra scales with source size</strong>. Use a <em>single</em> high-power LED, not the panel, and put it as far back as your exposure time tolerates. A big emitter close up gives mush. This is the one knob that decides whether the projections read as sharp or as fog, so buy one bare 395&nbsp;nm emitter alongside the panel and test both on day one.</p>
+      <p>One practical trap: cyanotypes need a running-water wash, and the container almost certainly has no sink. Either wash offsite between sessions, or bring trays and jugs and treat the wash as part of the demonstration.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="spine"><b>06</b> The prints</div>
+    <div class="body">
+      <h2>Your cv-draw prints don&rsquo;t exist yet &mdash; and may not need to</h2>
+      <p>Every one of the twelve <em class="term">cv-draw</em> renders in <em class="term">out/</em> is between 1100 and 1600 pixels wide. That is a seven-to-ten-inch print at usable density. For a wall where people stand three feet away you want roughly 200&nbsp;dpi, so a 24&nbsp;&times;&nbsp;36&#8243; piece needs about <strong>4800&nbsp;&times;&nbsp;7200 px &mdash; twenty to forty-five times the pixels you have on disk</strong>.</p>
+      <p>The good news is that it&rsquo;s all procedural and resolution is a single constant per script (<em class="term">W, H = 1500, 950</em>). Nothing is lost; it just has to be recomputed.</p>
+      <h3>Measured, not estimated</h3>
+      <p>I timed the path tracer on this box just now: <em class="term">raytrace.py 8</em> at 1100&nbsp;&times;&nbsp;700 took <strong>8.1&nbsp;s wall</strong> across 28 cores &mdash; about one second per sample-per-pixel at 0.77&nbsp;MP. Scaling to 24&nbsp;&times;&nbsp;36&#8243; at 200&nbsp;dpi (34.5&nbsp;MP, 45&times; the pixels) at the README&rsquo;s 420&nbsp;spp puts a full-quality render near <strong>five hours</strong>; at 300&nbsp;dpi, near twelve. Either is one overnight job. Time is not the problem.</p>
+      <div class="pull">The risk is memory, not hours. And an OOM at hour four of an overnight run costs you a whole day.</div>
+      <p>The tracer is vectorised over every pixel at once, so array size scales linearly with resolution. At 34.5&nbsp;MP a single float64 RGB buffer is around 830&nbsp;MB and the renderer holds several simultaneously. This machine has 30&nbsp;GB total but showed only <strong>~11&nbsp;GB available</strong>. Render in horizontal bands and stitch, or clear the box first &mdash; and prove it on day one with a single band at final resolution, not on day ten with the whole frame.</p>
+      <h3>The photograms just retired this deadline</h3>
+      <p>In the first draft of this plan, large-format printing was the hardest date on the calendar: three to seven days of vendor lead time, files out by Friday Aug 14, and a bare wall if you missed. Putting physical work on that wall instead removes the vendor from the critical path entirely.</p>
+      <p>So the honest recommendation is: <strong>show <em class="term">cv-draw</em> on a screen, not on paper.</strong> It is computed light &mdash; a path tracer deriving radiance from first principles &mdash; and displaying it as emitted light rather than as pigment is the more truthful presentation, not a compromise. The cyanotypes give the show its paper.</p>
+      <p>If you still want two or three of them printed for material contrast, that is a real argument and the render numbers above hold. Just treat it as an <em>optional</em> order placed by Friday Aug 14, sized so that missing it costs you nothing.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="spine"><b>07</b> The mind</div>
+    <div class="body">
+      <h2>One argument in four panes, ending with the visitor</h2>
+      <p>Sequence them left to right in the direction people walk, so the wall reads as a sentence: a mind split across two bodies, a mind that consults a few of its many parts, a mind whose memories belong to someone &mdash; and then you.</p>
+      <div class="scroll">
+        <table>
+          <caption>The mind wall, entrance to back</caption>
+          <thead><tr><th>Pane</th><th>Content</th><th>What it says about you</th></tr></thead>
+          <tbody>
+            <tr><td>Split</td><td><em class="term">distributed-70b</em> live: layer occupancy on both boards and activations crossing the wire between them.</td><td>A self can be running in two places at once and still be one self.</td></tr>
+            <tr><td>Routed</td><td>The MoE router firing &mdash; 128 experts, eight lit per token, 3.5B of 30B parameters active.</td><td>Almost all of you is idle almost all of the time.</td></tr>
+            <tr><td>Observed</td><td><em class="term">pansophist</em>&rsquo;s graph: expressions, and the observer they are anchored to.</td><td>There is no memory without someone holding it.</td></tr>
+            <tr><td>Present</td><td>A live camera on the container interior, with detection boxes drawn on whoever is standing there.</td><td>You are not watching the system. You are a term in it.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>The fourth pane is the one that turns the wall from a demo into an argument. Everything to its left is a machine describing itself; the moment a visitor sees their own outline boxed and labelled in the same visual language, the vocabulary transfers. <strong>If you cut anything on this wall, cut pane three, not pane four.</strong></p>
+      <div class="pull">And put the two Xaviers at opposite ends, with the ethernet run long, slack and lit.</div>
+      <p>This is the show&rsquo;s single strongest physical gesture and it costs almost nothing: fifteen feet of cable, dressed deliberately rather than hidden. A visitor walks the length of one mind. Tidying that cable away into the raceway would be the most expensive mistake available to you on install day &mdash; so say it out loud to whoever helps you hang it.</p>
+      <p>One honest caveat: a live camera on the public changes what you owe people. Post a plain sign at the door saying the interior is on camera and nothing is recorded &mdash; and then actually don&rsquo;t record. Run the detection live and keep no frames.</p>
+
+      <h3>Portrait, in cut steel</h3>
+      <p>Hanging the panels portrait and surrounding them in fabricated plate does more conceptual work than it looks like. <strong>Portrait orientation plus an ornate frame is the visual grammar of portraiture</strong> &mdash; it is how we have always signalled <em>this is a likeness of someone</em>. Applying that grammar to a router firing and a memory graph is precisely the show&rsquo;s argument, performed rather than explained. Four portraits of a mind, and the last one is of the viewer.</p>
+      <p>It also solves a problem you didn&rsquo;t raise: four bare monitors on a wall look like a trade-show booth. Four objects do not.</p>
+      <div class="scroll">
+        <table>
+          <caption>What the steel does to the numbers</caption>
+          <thead><tr><th>Measure</th><th class="num">Value</th><th>Note</th></tr></thead>
+          <tbody>
+            <tr><td>Panel, portrait</td><td class="num">13&#8243; &times; 24&#8243;</td><td>27&#8243; 16:9 rotated &mdash; roughly the proportion of a person</td></tr>
+            <tr><td>Plate, per frame</td><td class="num">22&#8243; &times; 33&#8243;</td><td>4&#8243; border showing all round</td></tr>
+            <tr><td>Frame run</td><td class="num">15&#8242;</td><td>Spread, not clustered &mdash; you walk past them</td></tr>
+            <tr><td>Ethernet run</td><td class="num">13&#8242;2&#8243;</td><td>Between the two frames holding boards</td></tr>
+            <tr><td>Steel</td><td class="num">38 lb</td><td>1/8&#8243; plate, four frames, cutouts deducted</td></tr>
+            <tr><td><strong>Hanging weight</strong></td><td class="num"><strong>78 lb</strong></td><td>Plate plus panels, on the gallery&rsquo;s boards</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><strong>Seventy-eight pounds is the number to take to HVAW</strong> before you cut anything. If the boards won&rsquo;t carry it, drop to 16&nbsp;ga (0.06&#8243;) and the plate weight roughly halves, at some cost to how substantial the frames feel in the hand. That is a decision to make this week, not at the saw.</p>
+      <p>Two things the cutting should do besides look good:</p>
+      <ul class="plain">
+        <li><strong>Vent the boards.</strong> A Xavier inside a steel surround, against a wall, in a sealed container in August, is a thermal problem. Put a denser run of cuts low and high on the two frames that carry boards, so the ornament <em>is</em> the convection path. Decoration doing mechanical work is the most satisfying kind.</li>
+        <li><strong>Leave a way in.</strong> If a board locks up mid-show you need to reach it without taking the frame off the wall. Design that access now; it is invisible in the drawing and infuriating on day three.</li>
+      </ul>
+      <h3>Lighting behind the plate</h3>
+      <p>Backlighting the frames is what makes the cutting pay off. Light behind the plate turns every hole from an absence into a source, throws the cut pattern onto the plywood as a halo, and separates each frame from the wall so it reads as an object rather than a panel stuck to a board.</p>
+      <p>Give <strong>each frame its own accent</strong>, matched to the pane it surrounds &mdash; blue for <em>split</em>, magenta for <em>routed</em>, green for <em>observed</em>, amber for <em>present</em>. The wall then reads as four distinct portraits at a glance, from the far end of the corridor, before anyone is close enough to read a word.</p>
+      <p>Cheap in every sense: a short LED strip behind each frame is about 8&nbsp;W, so all four add roughly 32&nbsp;W &mdash; the energy budget absorbs it without noticing. Run the strips off the same feed as the panels so one switch kills the wall. And keep the strip <em>hidden</em> behind the plate rather than visible at the edge; a glimpse of the strip itself undoes the effect instantly.</p>
+
+      <div class="pull">This is a second fabrication project in a fortnight that already has one.</div>
+      <p>Say it plainly: four cut-and-finished steel frames is real shop time &mdash; design, cut, deburr, finish, mount &mdash; landing in the same two weeks as bender calibration. The honest scheduling move is to <strong>hold the frames until after the Aug 17 gate</strong>, when you know whether the machine needs you. If it does, cut two frames properly and hang the other two panels bare; an asymmetry you chose reads far better than four rushed frames. And keep the finish cheap and fast &mdash; mill scale with a clear coat looks better than most paint and costs an afternoon less.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="spine"><b>08</b> Schedule<b>14 days</b></div>
+    <div class="body">
+      <h2>Irreversible things first</h2>
+      <p>The organising rule for week one: anything with external lead time or unknown feasibility happens now, while there is still room to react. Week two is for work you control.</p>
+
+      <div class="weekhead">Week 1 &mdash; commit and de-risk</div>
+      <div class="days">
+        <div class="day">
+          <div class="when">Tue<span>Aug 11</span></div>
+          <div class="what">
+            <b>Measure the container. Today.</b>
+            <ul class="plain">
+              <li>Interior L/W/H, door swing, ceiling.</li>
+              <li><strong>The board band &mdash; top height, bottom height, how far the run reaches, and what it&rsquo;s rated to carry.</strong> Four numbers, and they govern the whole hang. Put them straight into the 3D layout.</li>
+              <li><strong>Meter your real draw</strong> with a plug-in power meter: all four panels, both Xaviers, the bender mid-cycle. The 295&nbsp;W in the table is typical-case, and typical-case is not what kills you.</li>
+              <li>Power the bender, confirm all three axes move.</li>
+              <li><strong>Order the photogram kit today</strong> &mdash; pre-coated cyanotype paper (11&nbsp;&times;&nbsp;14 and 16&nbsp;&times;&nbsp;20), a 395&nbsp;nm UV panel, one bare 395&nbsp;nm emitter for projection, trays, drying rack. Next-day delivery makes this a non-event; ordering on Thursday makes it a problem.</li>
+              <li>Also order mounts, cabling, magnets or cleats, brackets for the object wall, and the grid rack.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="day">
+          <div class="when">Wed&ndash;Thu<span>Aug 12&ndash;13</span></div>
+          <div class="what">
+            <b>Drivers tuned. First exposures.</b>
+            <ul class="plain">
+              <li>Bender: set driver current to rated, tune microstepping, calibrate steps/mm on all three axes.</li>
+              <li>First cyanotypes the moment the kit lands &mdash; contact prints first, since they cannot really fail, then the point-source projection. Establish your exposure time under the panel and write it on the wall.</li>
+              <li>Cast through everything: hand-bent wire, cycloid discs, the <em class="term">megamop</em> dome&rsquo;s hole grid.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="day">
+          <div class="when">Fri<span>Aug 14</span></div>
+          <div class="what">
+            <b>Optional print order. Soft gate.</b>
+            <ul class="plain">
+              <li>If you want two or three <em class="term">cv-draw</em> pieces on paper for material contrast, the files go out today. Missing it now costs you nothing &mdash; the cyanotypes carry that wall.</li>
+              <li>Bender: soft-wire test in aluminium before steel, per your own checklist.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="day">
+          <div class="when">Sat&ndash;Sun<span>Aug 15&ndash;16</span></div>
+          <div class="what">
+            <b>Springback calibration. Photogram production.</b>
+            <ul class="plain">
+              <li>Measure springback in 14&nbsp;ga, tune <em class="term">BEND_PROCESS_FACTOR</em>, iterate. An empirical loop with no shortcut &mdash; give it the weekend.</li>
+              <li>Between exposures on the bender, run cyanotypes. Aim for a dozen sheets so you can hang the six best and still have a body of work if the machine stalls.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="day">
+          <div class="when">Mon<span>Aug 17</span></div>
+          <div class="what">
+            <b>Produce a test shape &mdash; square, then circle.</b>
+            <p>Your checklist&rsquo;s own final validation item, and the show&rsquo;s pivot point.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="gate">
+        <div class="lab">Go / no-go &mdash; end of Monday Aug 17</div>
+        <p><strong>Can the machine bend a repeatable closed shape, unattended, for ten minutes?</strong></p>
+        <p><strong>Yes</strong> &rarr; the live-production centrepiece is on. Spend week two on the loop program, the rack, and reliability.</p>
+        <p><strong>No</strong> &rarr; switch to machine-as-object with the sim beside it, and you still have a full week to make that read as intentional. Deciding this on the 17th is the difference between a good show and a scramble &mdash; do not let it drift to the 22nd.</p>
+      </div>
+
+      <div class="weekhead">Week 2 &mdash; build, test, install</div>
+      <div class="days">
+        <div class="day">
+          <div class="when">Tue&ndash;Wed<span>Aug 18&ndash;19</span></div>
+          <div class="what">
+            <b>Kiosk build on the Jetsons.</b>
+            <p>Auto-start on boot, watchdog, screen-blank disabled, no path to a desktop or a login prompt. Multi-day with you present is a moderate bar &mdash; but a Xavier sitting at a shell prompt on day three is the classic way this fails.</p>
+          </div>
+        </div>
+        <div class="day">
+          <div class="when">Thu<span>Aug 20</span></div>
+          <div class="what">
+            <b>Thermal soak.</b>
+            <p>Run four panels, both Xaviers and the bender for six hours in a closed room, watching <em class="term">tegrastats</em>. A sealed steel box in August will throttle. Decide now whether the answer is an open door, a quiet fan, or accepted throttling.</p>
+          </div>
+        </div>
+        <div class="day">
+          <div class="when">Fri<span>Aug 21</span></div>
+          <div class="what">
+            <b>Wall text, title vinyl, labels.</b>
+            <p>Always slower than it sounds, and it is the single thing that makes the container read as a show rather than a workshop that people wandered into.</p>
+          </div>
+        </div>
+        <div class="day">
+          <div class="when">Sat&ndash;Sun<span>Aug 22&ndash;23</span></div>
+          <div class="what">
+            <b>Full dry run at container dimensions.</b>
+            <p>Tape out 19&#8242;4&#8243; &times; 7&#8242;8&#8243; on your workshop floor and lay in every panel, every cable, every mount. Find the missing adapter here, where a hardware store is twenty minutes away &mdash; not at load-in.</p>
+          </div>
+        </div>
+        <div class="day">
+          <div class="when">Mon<span>Aug 24</span></div>
+          <div class="what">
+            <b>Load in, hang, light, dress cable.</b>
+            <p>Bring help. See section 10.</p>
+          </div>
+        </div>
+        <div class="day">
+          <div class="when">Tue<span>Aug 25</span></div>
+          <div class="what">
+            <b>Buffer. Schedule nothing.</b>
+            <p>Something will have broken. This day is how you open calmly instead of soldering in the dark.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="spine"><b>09</b> Risks</div>
+    <div class="body">
+      <h2>What actually sinks this</h2>
+      <div class="risks">
+        <div class="risk"><div class="n">01</div><div>
+          <h4>The board band may not reach your hang heights</h4>
+          <p><em>Resolved from &ldquo;can you mount anything at all&rdquo;</em> &mdash; the gallery&rsquo;s wooden boards settle that. What&rsquo;s left is narrower: if the band is a 2&#8242; ledger rather than a 4&#8242; run, your 57&#8243; monitors and 60&#8243; flat work won&rsquo;t both fit on it, and you&rsquo;ll be re-planning the wall on load-in day. Measure top and bottom on day one and set them in the 3D layout.</p>
+        </div></div>
+        <div class="risk"><div class="n">02</div><div>
+          <h4>Cyanotype exposure is a feel, not a formula</h4>
+          <p>Your first sheets will be over- or under-exposed, and the point-source projections will be soft until the emitter is small enough and far enough back. It is a fast loop &mdash; twenty minutes a try &mdash; but it is a loop, so start it Wednesday, not the following weekend. This replaced print lead time as the wall&rsquo;s main risk, and it is a much better one to have: entirely inside your control.</p>
+        </div></div>
+        <div class="risk"><div class="n">03</div><div>
+          <h4>Heat</h4>
+          <p>A sealed steel box, roughly 400&ndash;600&nbsp;W of electronics, and August. The Xaviers will throttle before you&rsquo;re uncomfortable, so instrument it rather than judging by feel.</p>
+        </div></div>
+        <div class="risk"><div class="n">04</div><div>
+          <h4>Recharging the bank between days</h4>
+          <p><em>Downgraded &mdash; a 4-hour day clears comfortably on 2&nbsp;kWh with 44% headroom.</em> What remains is turnaround: 1.18&nbsp;kWh has to go back in overnight, every night of the run, which means the bank travels to shore power and back. That is a small daily chore nobody has put on the calendar, and it is the kind of thing that gets skipped on day three. Meter the real draw this week so the margin you&rsquo;re relying on is measured rather than assumed.</p>
+        </div></div>
+        <div class="risk"><div class="n">05</div><div>
+          <h4>Springback calibration is genuinely unpredictable</h4>
+          <p>It&rsquo;s an empirical loop against real steel, and it is the only task here you cannot estimate honestly. Budget more than feels right, and hold the Aug 17 gate rather than letting it eat week two.</p>
+        </div></div>
+        <div class="risk"><div class="n">06</div><div>
+          <h4>Scope, now that budget is open</h4>
+          <p>&ldquo;Whatever it takes&rdquo; fails by letting you buy more than you can install. Six works do not fit. Four do. Spend the money on lead time and labour, not on additions.</p>
+        </div></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="spine"><b>10</b> Spend</div>
+    <div class="body">
+      <h2>Where money buys back time</h2>
+      <p>Since budget isn&rsquo;t the binding constraint, spend it exclusively on the calendar and on your own hands.</p>
+      <ul class="plain">
+        <li><strong>The photogram kit, ordered today.</strong> A UV panel, a bare emitter, and more pre-coated paper than you think you need. Cheap in absolute terms, and it buys you a whole wall that no vendor can make you late for. Over-buy the paper &mdash; running out mid-loop on Saturday is the failure mode.</li>
+        <li><strong>A bought display and track system</strong> instead of fabricating mounts. You have exactly one fabrication project this fortnight and it&rsquo;s the bender.</li>
+        <li><strong>A spare stepper driver and a second spool of wire.</strong> A fried driver on Aug 22 with no spare ends the centrepiece outright. This is the cheapest insurance on the list.</li>
+        <li><strong>A plug-in power meter.</strong> Costs almost nothing and converts your energy margin from assumed to measured. This is the only power spend the four-hour day still justifies &mdash; you don&rsquo;t need more battery.</li>
+        <li><strong>The touchscreen</strong> for <em class="term">entropy-brush</em>, rather than engineering an input hack around a mouse.</li>
+        <li><strong>One person for load-in day.</strong> Cabling four displays and a machine alone in a hot container is a ten-hour day; with help it&rsquo;s five, and you open rested.</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    <p>Assumes a Tue Aug 25 opening &mdash; confirm the real date with HVAW and shift the gate with it, not the load-in.<br>
+    Inventory audited against the working repos on Aug 11, 2026. Render timings measured on the 28-core host, not estimated.</p>
+  </footer>
+
+</div>
