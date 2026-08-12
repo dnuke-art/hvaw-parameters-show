@@ -52,6 +52,12 @@ def main() -> int:
     # keep Pages from running the file through Jekyll
     (ROOT / 'docs' / '.nojekyll').touch()
 
+    # docs/CNAME carries the custom domain and must survive a rebuild — this
+    # script only ever writes index.html and .nojekyll, so it does.
+    cname = ROOT / 'docs' / 'CNAME'
+    if not cname.exists():
+        raise SystemExit('docs/CNAME is missing — Pages would drop the custom domain')
+
     for rel, n in inlined:
         print(f'  inlined {rel:<32} {n / 1024:8.1f} KB')
     print()
