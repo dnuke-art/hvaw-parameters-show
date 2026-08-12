@@ -1627,11 +1627,16 @@ let drag = null;
    one-finger orbit so the model doesn't lurch while zooming. The canvas sets
    touch-action:none or the browser pans the page instead of telling us. */
 const touches = new Map();
-let pinch = 0;
+let pinch = 0;                  // last two-finger separation
+let pinchMid = null;            // last two-finger centroid, for panning
 
-const pinchGap = () => {
+const twoFinger = () => {
   const [a, b] = [...touches.values()];
-  return Math.hypot(a.x - b.x, a.y - b.y);
+  return {
+    gap: Math.hypot(a.x - b.x, a.y - b.y),
+    mx: (a.x + b.x) / 2,
+    my: (a.y + b.y) / 2,
+  };
 };
 
 function zoomBy(factor) {
@@ -1640,19 +1645,34 @@ function zoomBy(factor) {
   } else {
     orbit.dist = Math.max(40, Math.min(900, orbit.dist / factor));
   }
-  applyCamera();
+}
+
+/* Slide the orbit target across the camera's own screen plane. Shared by
+   shift/right-drag on desktop and by the two-finger drag on touch, so both
+   routes pan identically. */
+function panBy(dx, dy) {
+  const right = new T.Vector3().setFromMatrixColumn(camera.matrix, 0);
+  const up = new T.Vector3().setFromMatrixColumn(camera.matrix, 1);
+  target.addScaledVector(right, -dx * orbit.dist * 0.0016);
+  target.addScaledVector(up, dy * orbit.dist * 0.0016);
 }
 
 el.addEventListener('pointerdown', e => {
   el.setPointerCapture(e.pointerId);
   touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
-  if (touches.size === 2) { pinch = pinchGap(); drag = null; return; }
+  if (touches.size === 2) {
+    const t = twoFinger();
+    pinch = t.gap;
+    pinchMid = { x: t.mx, y: t.my };
+    drag = null;
+    return;
+  }
   drag = { x: e.clientX, y: e.clientY, pan: e.button === 2 || e.shiftKey };
 });
 
 function endPointer(e) {
   touches.delete(e.pointerId);
-  if (touches.size < 2) pinch = 0;
+  if (touches.size < 2) { pinch = 0; pinchMid = null; }
   drag = null;
   if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
 }
@@ -1663,10 +1683,18 @@ el.addEventListener('contextmenu', e => e.preventDefault());
 el.addEventListener('pointermove', e => {
   if (touches.has(e.pointerId)) touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
+  /* Two fingers: pinch zooms AND the pair sliding together pans. Touch has no
+     right-click and no shift, so a two-finger drag is the only pan gesture
+     available - without it an iPad can orbit and zoom but never move the
+     subject off centre. Both are applied from the same move, which is what the
+     gesture actually feels like on a map or in CAD. */
   if (touches.size === 2) {
-    const gap = pinchGap();
-    if (pinch > 0 && gap > 0) zoomBy(gap / pinch);
-    pinch = gap;
+    const t = twoFinger();
+    if (pinch > 0 && t.gap > 0) zoomBy(t.gap / pinch);
+    if (pinchMid && mode !== 'walk') panBy(t.mx - pinchMid.x, t.my - pinchMid.y);
+    pinch = t.gap;
+    pinchMid = { x: t.mx, y: t.my };
+    applyCamera();
     return;
   }
 
@@ -1678,10 +1706,7 @@ el.addEventListener('pointermove', e => {
     walkYaw += dx * 0.005;
     walkPitch = Math.max(-0.85, Math.min(0.85, walkPitch - dy * 0.004));
   } else if (drag.pan) {
-    const right = new T.Vector3().setFromMatrixColumn(camera.matrix, 0);
-    const up = new T.Vector3().setFromMatrixColumn(camera.matrix, 1);
-    target.addScaledVector(right, -dx * orbit.dist * 0.0016);
-    target.addScaledVector(up, dy * orbit.dist * 0.0016);
+    panBy(dx, dy);
   } else {
     orbit.az += dx * 0.006;
     orbit.pol = Math.max(0.12, Math.min(Math.PI - 0.12, orbit.pol - dy * 0.006));
@@ -1698,6 +1723,8 @@ el.addEventListener('wheel', e => {
   }
   applyCamera();
 }, { passive: false });
+
+
 
 addEventListener('keydown', e => {
   if (mode !== 'walk') return;
@@ -2032,8 +2059,9 @@ function cullShell() {
 }
 
 // Exposed so the layout can be poked from the console while hanging the show.
-window.SB = { scene, camera, objectWall, computeWall, flatWorks, sculptGroup, heartGroup,
-              pieces, DIM, MON, PRINT, PEDESTAL, buildObjectWall };
+window.SB = { scene, camera, renderer, objectWall, computeWall, flatWorks, sculptGroup,
+              heartGroup, pieces, DIM, MON, PRINT, PEDESTAL, buildObjectWall,
+              orbit, target, soulLayout, getMode: () => mode };
 
 renderer.setAnimationLoop(() => {
   cullShell();
