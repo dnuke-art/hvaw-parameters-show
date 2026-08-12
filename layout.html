@@ -232,7 +232,7 @@
         <button data-view="orbit" class="on">Corridor</button>
         <button data-view="plan">Plan</button>
         <button data-view="wallA">The mind</button>
-        <button data-view="wallB">The record</button>
+        <button data-view="wallB">The soul</button>
         <button data-view="hero">Walk in</button>
         <button data-view="door">At the door</button>
       </div>
@@ -246,9 +246,12 @@
       <label class="chk"><input type="checkbox" id="t-screens" checked> Screens live</label>
       <label class="chk"><input type="checkbox" id="t-backlight" checked> Backlit frames</label>
       <label class="chk"><input type="checkbox" id="t-cyano" checked> Cyanotypes (off = cv-draw prints)</label>
+      <label class="chk"><input type="checkbox" id="t-flatbig" checked> Flat work 24 &times; 36&Prime; (off = 16 &times; 24&Prime;)</label>
       <label class="chk"><input type="checkbox" id="t-sight" checked> Sightline</label>
       <label class="chk"><input type="checkbox" id="t-channel" checked> 3&prime; clear channel</label>
       <label class="chk"><input type="checkbox" id="t-heart" checked> Hearts on plinths (LED + 78-tri)</label>
+      <label class="chk"><input type="checkbox" id="t-cards" checked> Gallery cards + QR</label>
+      <label class="chk"><input type="checkbox" id="t-walllabels" checked> Wall labels [/mind] [/soul] [/body]</label>
       <label class="chk"><input type="checkbox" id="t-figure" checked> Figure (5&prime;10&Prime;)</label>
       <label class="chk"><input type="checkbox" id="t-cable"> Ethernet run (exposed)</label>
     </div>
@@ -282,8 +285,9 @@
         <input type="range" id="s-monh" min="44" max="70" step="1" value="57">
       </div>
       <div class="sld">
-        <div class="top"><span>Flat work height</span><b id="v-printh">18&Prime;</b></div>
-        <input type="range" id="s-printh" min="12" max="30" step="1" value="18">
+        <div class="top"><span>Flat work size</span><b id="v-flatsz">24 &times; 36&Prime;</b></div>
+        <div class="top"><span>Flat work height</span><b id="v-printh">36&Prime;</b></div>
+        <input type="range" id="s-printh" min="18" max="44" step="1" value="36">
       </div>
       <div class="sld">
         <div class="top"><span>Figure position</span><b id="v-figx">8&prime;</b></div>
@@ -329,7 +333,7 @@
   <div id="stage">
     <div id="tag">
       Left &middot; <b class="a">the mind</b> &mdash; 4 portrait panels, cut + backlit, 13&prime; between boards<br>
-      Right &middot; <b class="b">the record</b> &mdash; sculpture + the shadow it cast<br>
+      Right &middot; <b class="b">the soul</b> &mdash; sculpture + the shadow it cast<br>
       Back &middot; <b class="c">the body</b> &mdash; the bender + what it made
     </div>
     <div id="walkhint">Drag to look &middot; scroll or &uarr;&darr; to walk the corridor</div>
@@ -340,4 +344,5 @@
 <script src="vendor/three.global.min.js"></script>
 <script src="prints.js"></script>
 <script src="mesh.js"></script>
+<script src="qr.js"></script>
 <script src="scene.js"></script>

@@ -72,12 +72,30 @@ FRAME.density = () => FRAME.mat().density;
 FRAME.w = () => MON.w + MON.bezel * 2 + FRAME.border * 2;
 FRAME.h = () => MON.h + MON.bezel * 2 + FRAME.border * 2;
 
+/* Flat work is DesignJet output on the soul wall, hung PORTRAIT. `ratio` is
+   width/height, so the sheet keeps its proportion when the height slider moves.
+
+   Two sheet sizes off the 24" roll, both PORTRAIT and both 2:3, so the works
+   keep their proportion and only their scale changes:
+
+   - large  24 x 36. What Dan reached for first. Seven things share this wall,
+            though, and at 24" wide the clearances close to ~5.6" - the stats
+            panel flags it rather than letting it look fine in a render.
+   - small  16 x 24. Same proportion, ~9.6" clearances, wall breathes. */
+const FLAT_SIZES = {
+  large: { w: 24, h: 36 },
+  small: { w: 16, h: 24 },
+};
+
 const PRINT = {
-  height:   18,
+  size:     'large',
+  height:   FLAT_SIZES.large.h,
+  ratio:    FLAT_SIZES.large.w / FLAT_SIZES.large.h,
   gap:      12,
   centerY:  60,
   standoff: 1.2,
 };
+PRINT.w = () => PRINT.height * PRINT.ratio;
 
 // The gallery hangs wooden boards on the container sides to mount into — so the
 // real mounting surface is a band of wood standing proud of the corrugation,
@@ -97,6 +115,50 @@ const mountZ = sign => sign * (DIM.wid / 2 - BOARD.proud);
 const PLINTH = { w: 36, d: 24, h: 34 };   // black gallery plinth, not a work table
 const BENCH = PLINTH;
 const RACK  = { w: 52, h: 30, y: 48 };
+
+/* One pedestal spec for every sculpture in the room - the wire pieces and both
+   hearts. Nothing on this wall sits on a bracket any more: the wall carries
+   flat work only, objects stand on the floor. Keeping a single size means the
+   pedestals read as fixtures and the eye compares the work, not the furniture. */
+const PEDESTAL = { w: 15, d: 15, h: 40 };
+
+/* ------------------------------------------------------- soul wall layout
+
+   Seven things share this wall - two wire pieces on pedestals, three flat
+   works, two hearts - so their positions are solved rather than hardcoded.
+   Give it the running order and the widths and it spreads them with equal
+   clear gaps between SPAN.from and SPAN.to. Change the print size and
+   everything re-spaces instead of quietly overlapping.
+
+   SPAN.to stops at 202 because the bender's plinth starts at x=206.
+   The gap it returns is reported in the stats panel and warns under minGap:
+   at 24" prints this wall is genuinely tight, and that should be visible. */
+const SOUL = { from: 18, to: 202, minGap: 8 };
+
+// nominal widths - the wire pieces are fit to 16", a heart is ~1.21 x its height
+const SOUL_W = { sculpt: 16, heart: 21 };
+
+function soulLayout() {
+  const items = [
+    { key: 'sculpt', w: SOUL_W.sculpt },
+    { key: 'flat',   w: 0 },
+    { key: 'heart',  w: SOUL_W.heart },
+    { key: 'flat',   w: 0 },
+    { key: 'heart',  w: SOUL_W.heart },
+    { key: 'flat',   w: 0 },
+    { key: 'sculpt', w: SOUL_W.sculpt },
+  ];
+  const fw = PRINT.height * PRINT.ratio + 1.4;      // backer is the visual edge
+  items.forEach(it => { if (it.key === 'flat') it.w = fw; });
+
+  const used = items.reduce((a, b) => a + b.w, 0);
+  const gap = (SOUL.to - SOUL.from - used) / (items.length - 1);
+  let x = SOUL.from;
+  items.forEach(it => { it.x = x + it.w / 2; x += it.w + gap; });
+
+  const pick = k => items.filter(it => it.key === k).map(it => it.x);
+  return { gap, flat: pick('flat'), heart: pick('heart'), sculpt: pick('sculpt') };
+}
 
 const EYE = 65;          // viewer eye height
 const FIGURE_H = 70;     // 5'10"
@@ -185,16 +247,166 @@ const metal = (color, opts = {}) =>
 
 const wireMat = metal(C.wire, { roughness: 0.3, metalness: 0.85 });
 
-function bentPiece(seed, radius = 0.13, scale = 1) {
+/* `fit` normalises the longest axis to that many inches. bentCurve is random
+   per seed and its raw extent varies about 2:1 between seeds, so a bare scale
+   multiplier gives pieces of wildly different sizes - which is how a pedestal
+   piece ended up 42" wide and running into the cyanotype beside it. Pass fit
+   whenever the piece has to live in a known slot. */
+function bentPiece(seed, radius = 0.13, scale = 1, fit = 0) {
   const curve = bentCurve(seed);
-  const mesh = new T.Mesh(new T.TubeGeometry(curve, 90, radius / scale, 7, false), wireMat);
-  mesh.scale.setScalar(scale);
+
+  /* Work the scale out from the CURVE, before the tube exists. Scaling a
+     finished tube would scale its radius too, so fitting a piece into a
+     smaller slot would silently thin the wire - which is how the pedestal
+     pieces ended up as 0.2"-diameter thread you couldn't see. Dividing the
+     radius by the final scale here makes `radius` the real world-space wire
+     radius in inches, whatever the piece's overall size. */
+  let s = scale;
+  if (fit > 0) {
+    const sz = new T.Box3().setFromPoints(curve.getPoints(160)).getSize(new T.Vector3());
+    s = fit / Math.max(sz.x, sz.y, sz.z);
+  }
+
+  const mesh = new T.Mesh(new T.TubeGeometry(curve, 90, radius / s, 7, false), wireMat);
+  mesh.scale.setScalar(s);
   mesh.castShadow = true;
+
   // recentre so it hangs sensibly wherever it's placed
   const bb = new T.Box3().setFromObject(mesh);
   mesh.position.sub(bb.getCenter(new T.Vector3()));
   return mesh;
 }
+
+/* ------------------------------------------------------------- gallery cards
+
+   One card per work, drawn to a canvas and hung as a plane. Everything on it -
+   title, medium, dimensions, and the QR target - comes out of qr.js, which
+   make_qr.py generates, so the card and the code can never disagree.
+
+   The QR codes are REAL and scannable (make_qr.py --selftest round-trips every
+   one). They point at parameters.dnuke.art/p/<slug>, which is a placeholder
+   until the Curiate links exist - change BASE in make_qr.py, re-run, rebuild.
+
+   Cards hang BELOW their work rather than beside it: at 24" wide the flat works
+   leave only ~5.6" between neighbours, and a 6" card would not fit in the gap.
+   Below the work there is always the rest of the board. */
+
+const CARD = { w: 6, h: 3.6, px: 100 };
+const cardGroup = [];               // every card, for the show/hide toggle
+
+function cardTexture(slug, dimsOverride) {
+  const info = (window.QR && window.QR.codes && window.QR.codes[slug]) || null;
+  if (!info) return null;
+
+  const W = CARD.w * CARD.px, H = CARD.h * CARD.px;
+  const cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  const x = cv.getContext('2d');
+
+  x.fillStyle = '#F4F2ED'; x.fillRect(0, 0, W, H);
+  x.strokeStyle = '#D8D3C8'; x.lineWidth = 3; x.strokeRect(1.5, 1.5, W - 3, H - 3);
+
+  const pad = 26;
+
+  // QR block, right-aligned, with its own quiet zone
+  const q = 250, qx = W - pad - q, qy = (H - q) / 2;
+  const rows = atob(info.rows), n = info.n;
+  const quiet = 4, cell = q / (n + quiet * 2);
+  x.fillStyle = '#FFFFFF'; x.fillRect(qx, qy, q, q);
+  x.fillStyle = '#101010';
+  for (let r = 0; r < n; r++) {
+    for (let c = 0; c < n; c++) {
+      if (rows[r * n + c] === '1') {
+        // +0.5 so neighbouring modules meet instead of leaving scan-breaking seams
+        x.fillRect(qx + (c + quiet) * cell, qy + (r + quiet) * cell, cell + 0.5, cell + 0.5);
+      }
+    }
+  }
+
+  const colW = qx - pad - 18;
+  let y = pad + 20;
+
+  x.fillStyle = '#8A8478';
+  x.font = '600 15px ui-monospace, monospace';
+  x.fillText((window.QR.artist || '').toUpperCase(), pad, y);
+
+  y += 40;
+  x.fillStyle = '#14181A';
+  x.font = '700 33px Georgia, serif';
+  x.fillText(info.title, pad, y);
+
+  y += 27;
+  x.fillStyle = '#6E6A61';
+  x.font = '17px Georgia, serif';
+  x.fillText(String(window.QR.year || ''), pad, y);
+
+  // medium, wrapped to the text column
+  y += 34;
+  x.fillStyle = '#3C4145';
+  x.font = '16px Helvetica, Arial, sans-serif';
+  const words = info.medium.split(' ');
+  let line = '';
+  words.forEach(w => {
+    const t = line ? line + ' ' + w : w;
+    if (x.measureText(t).width > colW && line) { x.fillText(line, pad, y); y += 21; line = w; }
+    else line = t;
+  });
+  if (line) { x.fillText(line, pad, y); y += 21; }
+
+  x.fillStyle = '#6E6A61';
+  x.fillText(dimsOverride || info.dims, pad, y + 4);
+
+  const tex = new T.CanvasTexture(cv);
+  tex.colorSpace = T.SRGBColorSpace;
+  tex.anisotropy = 8;
+  return tex;
+}
+
+/* Returns a card mesh, or null if qr.js has no entry for the slug. Callers add
+   it to the same group as the work so it inherits the work's facing. */
+function galleryCard(slug, dimsOverride) {
+  const tex = cardTexture(slug, dimsOverride);
+  if (!tex) return null;
+  const mesh = new T.Mesh(
+    new T.PlaneGeometry(CARD.w, CARD.h),
+    new T.MeshStandardMaterial({ map: tex, roughness: 0.92, metalness: 0 })
+  );
+  mesh.userData.card = true;
+  cardGroup.push(mesh);
+  return mesh;
+}
+
+/* ----------------------------------------------------------- wall labels
+
+   [/mind] [/soul] [/body] as closing tags - the wall names read as markup,
+   which is the right register for a show called Parameters. Vinyl-scale, in
+   mono, at the door end of each wall and BELOW the board band, so they sit on
+   the container skin rather than competing with the work. */
+
+const WALL_LABEL = { w: 26, h: 7, y: 20 };
+
+function wallLabel(text, tint) {
+  const cv = document.createElement('canvas');
+  cv.width = WALL_LABEL.w * 40; cv.height = WALL_LABEL.h * 40;
+  const x = cv.getContext('2d');
+  x.clearRect(0, 0, cv.width, cv.height);
+  x.font = '600 150px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+  x.textAlign = 'left'; x.textBaseline = 'middle';
+  x.fillStyle = tint;
+  x.letterSpacing = '14px';
+  x.fillText(text, 16, cv.height / 2);
+
+  const tex = new T.CanvasTexture(cv);
+  tex.colorSpace = T.SRGBColorSpace;
+  tex.anisotropy = 8;
+  return new T.Mesh(
+    new T.PlaneGeometry(WALL_LABEL.w, WALL_LABEL.h),
+    new T.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false })
+  );
+}
+
+const labelGroup = new T.Group();
+let labelsPlaced = false;
 
 /* --------------------------------------------------------------- scene setup */
 
@@ -663,6 +875,12 @@ function buildMonitors() {
 
     g.position.set(cx, MON.centerY, z);
     computeWall.add(g);
+    const card = galleryCard(PANES[i % 4]);
+    if (card) {
+      card.position.set(0, -(FRAME.h() / 2) - 1 - CARD.h / 2, MON.standoff + 0.1);
+      g.add(card);
+    }
+
     monitors.push(g);
   });
 }
@@ -711,9 +929,10 @@ let cableRun = buildCable();
 
 /* --------------------------------------------------------- wall B: object wall
 
-   Physical work, not a second wall of screens: bent-wire sculpture on brackets,
-   alternating with the cyanotype each one cast. Object and its own shadow-image,
-   side by side. The flat works can be swapped to cv-draw prints to compare.
+   Physical work, not a second wall of screens. The wall carries the cyanotypes
+   only; the wire pieces that cast them stand on pedestals in front (see
+   SCULPTS below). Object and its own shadow-image, but the shadow hangs and
+   the object stands. Flat works can be swapped to cv-draw prints to compare.
    -------------------------------------------------------------------------- */
 
 const objectWall = new T.Group();
@@ -807,85 +1026,127 @@ function cyanotypeTexture(seed) {
 
 const FLAT_SLOTS = 3;
 const flatWorks = [];
-const brackets = [];
 let flatMode = 'cyano';
 
 function buildObjectWall() {
-  [...flatWorks, ...brackets].forEach(o => objectWall.remove(o));
-  flatWorks.length = 0; brackets.length = 0;
+  flatWorks.forEach(o => objectWall.remove(o));
+  flatWorks.length = 0;
 
   const data = window.PRINTS || {};
   const keys = Object.keys(data);
   const z = mountZ(1) - PRINT.standoff;
+  const at = soulLayout().flat;
 
-  // bay widths: flat work, then a sculpture bracket, alternating
-  const bays = [];
   for (let i = 0; i < FLAT_SLOTS; i++) {
-    const w = flatMode === 'cyano'
-      ? PRINT.height * 0.8
-      : PRINT.height * (data[keys[i % keys.length]]?.aspect || 1.5);
-    bays.push({ kind: 'flat', w, i });
-    if (i < FLAT_SLOTS - 1) bays.push({ kind: 'sculpt', w: 15, i });
-  }
+    // both modes hang at the same 24 x 36 portrait sheet - the toggle swaps
+    // what is ON the paper, not the paper
+    const w = PRINT.w();
 
-  const gap = 18;
-  const run = bays.reduce((a, b) => a + b.w, 0) + gap * (bays.length - 1);
-  let x = (DIM.len - run) / 2;
+    const g = new T.Group();
+    const tex = flatMode === 'cyano'
+      ? cyanotypeTexture(400 + i * 53)
+      : (() => {
+          const t = new T.TextureLoader().load(data[keys[i % keys.length]].uri);
+          t.colorSpace = T.SRGBColorSpace;
+          return t;
+        })();
 
-  bays.forEach(bay => {
-    if (bay.kind === 'flat') {
-      const g = new T.Group();
-      const tex = flatMode === 'cyano'
-        ? cyanotypeTexture(400 + bay.i * 53)
-        : (() => {
-            const t = new T.TextureLoader().load(data[keys[bay.i % keys.length]].uri);
-            t.colorSpace = T.SRGBColorSpace;
-            return t;
-          })();
+    const face = new T.Mesh(
+      new T.PlaneGeometry(w, PRINT.height),
+      new T.MeshStandardMaterial({ map: tex, roughness: 0.95, metalness: 0 })
+    );
+    face.rotation.y = Math.PI;
+    face.position.z = -0.05;
+    g.add(face);
 
-      const face = new T.Mesh(
-        new T.PlaneGeometry(bay.w, PRINT.height),
-        new T.MeshStandardMaterial({ map: tex, roughness: 0.95, metalness: 0 })
-      );
-      face.rotation.y = Math.PI;
-      face.position.z = -0.05;
-      g.add(face);
+    const backer = box(w + 1.4, PRINT.height + 1.4, 1.1, matte(0x20262a));
+    backer.position.z = 0.6;
+    backer.castShadow = true;
+    g.add(backer);
 
-      const backer = box(bay.w + 1.4, PRINT.height + 1.4, 1.1, matte(0x20262a));
-      backer.position.z = 0.6;
-      backer.castShadow = true;
-      g.add(backer);
-
-      g.position.set(x + bay.w / 2, PRINT.centerY, z);
-      objectWall.add(g);
-      flatWorks.push(g);
-    } else {
-      const g = new T.Group();
-      const shelf = box(bay.w, 1.2, 8, matte(0x2A3236));
-      shelf.position.z = -4;
-      shelf.castShadow = true; shelf.receiveShadow = true;
-      g.add(shelf);
-
-      // two cleat brackets under it
-      [-1, 1].forEach(s => {
-        const cl = box(1, 4, 6, metal(0x454E52));
-        cl.position.set(s * (bay.w / 2 - 2), -2.4, -3.4);
-        g.add(cl);
-      });
-
-      const piece = bentPiece(2200 + bay.i * 91, 0.2, 1.35);
-      piece.position.set(0, 6.5, -4);
-      g.add(piece);
-
-      g.position.set(x + bay.w / 2, PRINT.centerY - PRINT.height / 2 - 2, z);
-      objectWall.add(g);
-      brackets.push(g);
+    // card hangs under the work, on the board
+    const card = galleryCard(`cyanotype-${i + 1}`,
+      `${Math.round(PRINT.w())} x ${Math.round(PRINT.height)} in`);
+    if (card) {
+      card.rotation.y = Math.PI;
+      card.position.set(0, -(PRINT.height / 2) - 1 - CARD.h / 2, -0.05);
+      g.add(card);
     }
-    x += bay.w + gap;
-  });
-  return run;
+
+    g.position.set(at[i], PRINT.centerY, z);
+    g.userData.slug = `cyanotype-${i + 1}`;
+    objectWall.add(g);
+    flatWorks.push(g);
+  }
+  return at[FLAT_SLOTS - 1] - at[0] + PRINT.w();
 }
 let wallRun = buildObjectWall();
+
+/* ------------------------------------------- the wire pieces, on pedestals
+
+   These used to sit on little wall shelves. They're free-standing sculpture,
+   so they stand on the floor like sculpture: same pedestal as the hearts, set
+   in the gaps between the cyanotypes rather than under them, so nothing is
+   read as a caption for the thing above it. */
+
+const sculptGroup = new T.Group();
+scene.add(sculptGroup);
+
+/* The soul wall is laid out on one 26" pitch, centred on the container, so the
+   whole run alternates cleanly and nothing crowds anything:
+
+     38  sculpture     64  cyanotype   90  LED heart   116  cyanotype
+     142 decimated heart          168  cyanotype      194  sculpture
+
+   Which also gives the walk a shape: a wire piece at the door, its own shadow
+   next to it, the hearts in the middle, then the last wire piece immediately
+   before you meet the machine that bent it. */
+const SCULPTS = [
+  { seed: 2200, slug: 'springback-1' },
+  { seed: 2291, slug: 'springback-2' },
+];
+
+function pedestal(g) {
+  const pl = box(PEDESTAL.d, PEDESTAL.h, PEDESTAL.w,
+    matte(0x0d1012, { roughness: 0.72, metalness: 0.02 }));
+  pl.position.y = PEDESTAL.h / 2;
+  pl.castShadow = true; pl.receiveShadow = true;
+  g.add(pl);
+
+  const rev = box(PEDESTAL.d + 0.5, 0.4, PEDESTAL.w + 0.5,
+    matte(0x22282b, { roughness: 0.6 }));
+  rev.position.y = PEDESTAL.h - 0.2;
+  g.add(rev);
+  return g;
+}
+
+SCULPTS.forEach((spec, i) => {
+  const g = pedestal(new T.Group());
+  // 16" across: reads as sculpture, still sits inside the 15" pedestal top
+  const piece = bentPiece(spec.seed, 0.15, 1, 16);   // 0.3" wire, 16" across
+  // bentPiece recentres on its own origin, so half its height puts the bottom
+  // flush on the pedestal top rather than floating above it
+  const ph = new T.Box3().setFromObject(piece).getSize(new T.Vector3()).y;
+  piece.position.y = PEDESTAL.h + ph / 2;
+  g.add(piece);
+
+  // same aimed head the decimated heart gets - these are unlit objects too
+  const head = new T.SpotLight(0xfff6ec, 2600, 120, Math.PI * 26 / 180, 0.45, 2);
+  head.position.set(0, 78, -22);
+  head.target.position.set(0, PEDESTAL.h + 7, 0);
+  g.add(head, head.target);
+
+  const card = galleryCard(spec.slug);
+  if (card) {
+    card.rotation.y = Math.PI;
+    card.position.set(0, PEDESTAL.h - 5, -PEDESTAL.w / 2 - 0.06);
+    g.add(card);
+  }
+
+  g.position.set(soulLayout().sculpt[i], 0, DIM.wid / 2 - BOARD.proud - PEDESTAL.d / 2);
+  g.userData.slug = spec.slug;
+  sculptGroup.add(g);
+});
 
 /* ---------------------------------------- Mobius LED hearts, on two plinths
 
@@ -903,7 +1164,7 @@ const HEART = {
   panels: 30,
   ribbon: 2.2,         // width across the ribbon
   thick: 0.42,
-  plinth: { w: 15, d: 15, h: 40 },
+  plinth: PEDESTAL,          // same pedestal as the wire pieces
 };
 
 /* A pair on matching plinths, at matching size: the LED ribbon heart, and
@@ -914,8 +1175,8 @@ const HEART = {
    stated in objects. Check the clearances against the prints at x=50.6/116/181.4
    if the hang spacing or HEART.height changes. */
 const HEARTS = [
-  { x: 96,  contents: 'ribbon' },
-  { x: 136, contents: 'mesh'   },
+  { contents: 'ribbon' },
+  { contents: 'mesh'   },
 ];
 
 const heartGroup = new T.Group();
@@ -959,7 +1220,7 @@ function fitHeight(geo, target) {
   return target / geo.boundingBox.getSize(new T.Vector3()).y;
 }
 
-function buildHeart(spec) {
+function buildHeart(spec, atX) {
   const g = new T.Group();
   const zWall = DIM.wid / 2 - BOARD.proud - HEART.plinth.d / 2;
 
@@ -977,6 +1238,13 @@ function buildHeart(spec) {
 
   // Shared centre height, so both hearts hang at the same eye level.
   const yMid = HEART.plinth.h + HEART.height / 2 + 1.2;
+
+  const card = galleryCard(spec.contents === 'mesh' ? 'decimated-78' : 'mobius-heart');
+  if (card) {
+    card.rotation.y = Math.PI;
+    card.position.set(0, PEDESTAL.h - 5, -PEDESTAL.w / 2 - 0.06);
+    g.add(card);
+  }
 
   if (spec.contents === 'mesh') {
     const geo = meshGeometry();
@@ -1008,7 +1276,7 @@ function buildHeart(spec) {
     head.target.position.set(0, yMid, 0);
     g.add(head, head.target);
 
-    g.position.set(spec.x, 0, zWall);
+    g.position.set(atX, 0, zWall);
     heartGroup.add(g);
     return g;
   }
@@ -1059,12 +1327,39 @@ function buildHeart(spec) {
   glow.position.set(0, yMid, -9);
   g.add(glow);
 
-  g.position.set(spec.x, 0, zWall);
+  g.position.set(atX, 0, zWall);
   heartGroup.add(g);
   return g;
 }
 
-HEARTS.forEach(buildHeart);
+HEARTS.forEach((spec, i) => buildHeart(spec, soulLayout().heart[i]));
+
+/* Placed once the container dimensions are settled. Under the boards
+   (BOARD.bottom = 32) on the container skin, at the door end. */
+if (!labelsPlaced) {
+  labelsPlaced = true;
+  scene.add(labelGroup);
+
+  // Proud of the corrugation, not flat on the skin: the ribs stand 1.4" in from
+  // the wall, so a label sitting on the wall itself is chopped into fragments by
+  // them. This is the vinyl applied across the rib faces, which is how it would
+  // actually go on.
+  const proud = DIM.ribDepth + 0.3;
+
+  const mind = wallLabel('[/mind]', '#6FA8C6');
+  mind.position.set(26, WALL_LABEL.y, -DIM.wid / 2 + proud);
+  labelGroup.add(mind);
+
+  const soul = wallLabel('[/soul]', '#3E7FB5');
+  soul.rotation.y = Math.PI;
+  soul.position.set(26, WALL_LABEL.y, DIM.wid / 2 - proud);
+  labelGroup.add(soul);
+
+  const body = wallLabel('[/body]', '#DE7B41');
+  body.rotation.y = -Math.PI / 2;
+  body.position.set(DIM.len - proud, WALL_LABEL.y, -26);
+  labelGroup.add(body);
+}
 
 /* ------------------------------------------------- back wall: the wirebender */
 
@@ -1086,6 +1381,13 @@ heroGroup.add(reveal);
 // rotating feed tube, extruder feeding from a spool, bending head on the end.
 const bender = new T.Group();
 bender.position.set(plinthX, PLINTH.h + 0.3, 0);
+
+const benderCard = galleryCard('the-bender');
+if (benderCard) {
+  benderCard.rotation.y = -Math.PI / 2;                 // faces back down the corridor
+  benderCard.position.set(plinthX - PLINTH.d / 2 - 0.06, PLINTH.h - 5, 0);
+  heroGroup.add(benderCard);
+}
 heroGroup.add(bender);
 
 const basePlate = box(9, 0.6, 30, metal(C.machine2));
@@ -1392,7 +1694,8 @@ function updateStats() {
     ['Ethernet run', `${feetInches(cableRun)} ${DOT} board to board`],
     [`${FRAME.mat().label} on the wall`, `${steelLb.toFixed(0)} lb plate ${DOT} ${rigLb.toFixed(0)} lb rigged`],
     ['Cut process', `${FRAME.mat().process} ${DOT} ${FRAME.thick()}${DPR} stock`],
-    ['Object wall run', `${feetInches(wallRun)} ${DOT} ${flatWorks.length} flat + ${brackets.length} sculpt`],
+    ['Soul wall run', `${feetInches(wallRun)} ${DOT} ${flatWorks.length} flat + ${SCULPTS.length} on pedestals`],
+    ['Soul wall clearance', `${soulLayout().gap < SOUL.minGap ? NO : OK} ${soulLayout().gap.toFixed(1)}${DPR} between works`],
     ['Clear channel', `${feetInches(clear)} (need 3${PR})`],
     ['Corridor to machine', feetInches(corridor)],
     ['Pieces on rack', `${pieces.length} of 12`],
@@ -1479,6 +1782,8 @@ bind('t-backlight', n => {
 });
 bind('t-figure', n => { figure.visible = n.checked; });
 bind('t-heart', n => { heartGroup.visible = n.checked; });
+bind('t-cards', n => { cardGroup.forEach(c => { c.visible = n.checked; }); });
+bind('t-walllabels', n => { labelGroup.visible = n.checked; });
 bind('t-cable', n => {
   cableVisible = n.checked;
   if (cable) cable.visible = cableVisible;
@@ -1491,11 +1796,29 @@ bind('s-monh', n => {
   document.getElementById('v-monh').textContent = `${MON.centerY}${DPR}`;
   updateStats();          // re-check the steel still lands on the boards
 });
+function rebuildSoulWall() {
+  wallRun = buildObjectWall();
+  const L = soulLayout();
+  sculptGroup.children.forEach((g, i) => { g.position.x = L.sculpt[i]; });
+  heartGroup.children.forEach((g, i) => { g.position.x = L.heart[i]; });
+  document.getElementById('v-printh').textContent = `${PRINT.height}${DPR}`;
+  document.getElementById('v-flatsz').textContent =
+    `${Math.round(PRINT.w())} ${TIMES} ${Math.round(PRINT.height)}${DPR}`;
+  updateStats();
+}
+
 bind('s-printh', n => {
   PRINT.height = +n.value;
-  wallRun = buildObjectWall();
-  document.getElementById('v-printh').textContent = `${PRINT.height}${DPR}`;
-  updateStats();
+  rebuildSoulWall();
+});
+
+bind('t-flatbig', n => {
+  const sz = FLAT_SIZES[n.checked ? 'large' : 'small'];
+  PRINT.size = n.checked ? 'large' : 'small';
+  PRINT.height = sz.h;
+  PRINT.ratio = sz.w / sz.h;
+  document.getElementById('s-printh').value = String(Math.round(PRINT.height));
+  rebuildSoulWall();
 });
 bind('t-cyano', n => {
   flatMode = n.checked ? 'cyano' : 'prints';
@@ -1589,7 +1912,8 @@ function cullShell() {
 }
 
 // Exposed so the layout can be poked from the console while hanging the show.
-window.SB = { scene, camera, objectWall, computeWall, flatWorks, brackets, pieces, DIM, MON, PRINT, buildObjectWall };
+window.SB = { scene, camera, objectWall, computeWall, flatWorks, sculptGroup, heartGroup,
+              pieces, DIM, MON, PRINT, PEDESTAL, buildObjectWall };
 
 renderer.setAnimationLoop(() => {
   cullShell();
