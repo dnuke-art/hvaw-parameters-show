@@ -890,7 +890,6 @@ let wallRun = buildObjectWall();
    -------------------------------------------------------------------------- */
 
 const HEART = {
-  x: 100,              // along the corridor
   height: 17,          // overall, scaled down from the ~57" full build
   panels: 30,
   ribbon: 2.2,         // width across the ribbon
@@ -898,10 +897,17 @@ const HEART = {
   plinth: { w: 15, d: 15, h: 40 },
 };
 
+// A pair, close enough to be compared: one ribbon empty, one holding the
+// decimated mesh. Same form, different parameter count - which is the show.
+const HEARTS = [
+  { x: 96,  contents: 'empty' },
+  { x: 136, contents: 'mesh'  },
+];
+
 const heartGroup = new T.Group();
 scene.add(heartGroup);
 
-function heartCurve(scale) {
+function heartCurve() {
   const pts = [];
   for (let i = 0; i < 160; i++) {
     const t = (i / 160) * Math.PI * 2;
@@ -910,27 +916,49 @@ function heartCurve(scale) {
       16 * st * st * st,
       13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t),
       0
-    ).multiplyScalar(scale));
+    ));
   }
   return new T.CatmullRomCurve3(pts, true, 'catmullrom', 0.5);
 }
 
-function buildHeart() {
+/* The STL rides in as base64 float32 positions (see make_mesh.py). STL has no
+   shared vertices, so this is a flat position array with computed normals.
+   Returns null when mesh.js hasn't been generated yet. */
+function meshGeometry() {
+  const src = window.MESH;
+  if (!src || !src.positions) return null;
+  const bin = atob(src.positions);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  const geo = new T.BufferGeometry();
+  geo.setAttribute('position', new T.BufferAttribute(new Float32Array(bytes.buffer), 3));
+  geo.computeVertexNormals();
+  geo.center();
+  return geo;
+}
+
+function fitInto(geo, target) {
+  geo.computeBoundingBox();
+  const size = geo.boundingBox.getSize(new T.Vector3());
+  return target / Math.max(size.x, size.y, size.z);
+}
+
+function buildHeart(spec) {
+  const g = new T.Group();
   const zWall = DIM.wid / 2 - BOARD.proud - HEART.plinth.d / 2;
 
   const pl = box(HEART.plinth.d, HEART.plinth.h, HEART.plinth.w,
     matte(0x0d1012, { roughness: 0.72, metalness: 0.02 }));
-  pl.position.set(HEART.x, HEART.plinth.h / 2, zWall);
+  pl.position.y = HEART.plinth.h / 2;
   pl.castShadow = true; pl.receiveShadow = true;
-  heartGroup.add(pl);
+  g.add(pl);
 
   const rev = box(HEART.plinth.d + 0.5, 0.4, HEART.plinth.w + 0.5, matte(0x22282b, { roughness: 0.6 }));
-  rev.position.set(HEART.x, HEART.plinth.h - 0.2, zWall);
-  heartGroup.add(rev);
+  rev.position.y = HEART.plinth.h - 0.2;
+  g.add(rev);
 
-  // the ribbon itself
   const ribbon = new T.Group();
-  const curve = heartCurve(1);
+  const curve = heartCurve();
   const bb = new T.Box3().setFromPoints(curve.getPoints(200));
   const size = bb.getSize(new T.Vector3());
   const scale = HEART.height / size.y;
@@ -950,8 +978,7 @@ function buildHeart() {
     const p = curve.getPointAt(u).sub(centre).multiplyScalar(scale);
     const tan = curve.getTangentAt(u).normalize();
 
-    // half twist distributed around the loop - the Mobius
-    const twist = u * Math.PI;
+    const twist = u * Math.PI;                       // the half twist
     const w = up.clone().applyAxisAngle(tan, twist).normalize();
     const side = new T.Vector3().crossVectors(tan, w).normalize();
 
@@ -965,14 +992,36 @@ function buildHeart() {
     ribbon.add(panel);
   }
 
-  ribbon.position.set(HEART.x, HEART.plinth.h + HEART.height / 2 + 1.2, zWall);
-  heartGroup.add(ribbon);
+  // what sits inside the ribbon
+  if (spec.contents === 'mesh') {
+    const geo = meshGeometry();
+    const inner = geo
+      ? new T.Mesh(geo, new T.MeshStandardMaterial({
+          color: 0xcfd8dc, roughness: 0.52, metalness: 0.35, flatShading: true }))
+      // placeholder until make_mesh.py has been run - obviously stand-in
+      : new T.Mesh(new T.IcosahedronGeometry(1, 1), new T.MeshStandardMaterial({
+          color: 0x6b7a80, roughness: 0.7, metalness: 0.1,
+          flatShading: true, wireframe: true }));
+    inner.scale.setScalar(fitInto(inner.geometry, HEART.height * 0.52));
+    inner.castShadow = true;
+    inner.userData.placeholder = !geo;
+    ribbon.add(inner);
+    g.userData.inner = inner;
+  }
+
+  ribbon.position.y = HEART.plinth.h + HEART.height / 2 + 1.2;
+  g.add(ribbon);
 
   const glow = new T.PointLight(0xff3d6b, 2200, 70, 2);
-  glow.position.set(HEART.x, HEART.plinth.h + HEART.height / 2 + 1.2, zWall - 3);
-  heartGroup.add(glow);
+  glow.position.set(0, HEART.plinth.h + HEART.height / 2 + 1.2, -3);
+  g.add(glow);
+
+  g.position.set(spec.x, 0, zWall);
+  heartGroup.add(g);
+  return g;
 }
-buildHeart();
+
+HEARTS.forEach(buildHeart);
 
 /* ------------------------------------------------- back wall: the wirebender */
 
