@@ -11,7 +11,7 @@ for what a mind is, and we turn it on ourselves. The collective is literal —
 routes to 8 of 128 specialists per token. *Springback* survives as the title of
 the wire work.
 
-**Live 3D previz:** https://dnuke-art.github.io/hvaw-parameters-show/
+**Live 3D previz:** https://parameters.dnuke.art/
 
 Two deliverables live here:
 
@@ -42,6 +42,7 @@ vendor/three.global.min.js   generated — three r160, IIFE-wrapped
 make_prints.py               regenerates prints.js from ../cv-draw/out/
 build.py                     inlines everything → docs/index.html (GitHub Pages)
 docs/index.html              generated — the self-contained build Pages serves
+docs/CNAME                   the custom domain; Pages drops it if this vanishes
 ```
 
 All real-world dimensions live in the `DIM` / `MON` / `PRINT` / `BENCH` / `RACK`
