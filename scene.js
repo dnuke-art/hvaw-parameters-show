@@ -880,13 +880,15 @@ function buildObjectWall() {
 }
 let wallRun = buildObjectWall();
 
-/* ------------------------------------------- Mobius LED heart, on a plinth
+/* ---------------------------------------- Mobius LED hearts, on two plinths
 
    A scaled-down build of mobius-led-heart: a heart-shaped ribbon of LED panels
    carrying a half twist, so one run of panels lights what reads as both sides.
    The ribbon starts on-edge (cookie-cutter) and rotates through 180 degrees
    around the loop - which is the whole point of the piece, and the reason it
    has to be modelled as oriented panels rather than a swept tube.
+
+   Two of them: see HEARTS below for why the second one holds a mesh.
    -------------------------------------------------------------------------- */
 
 const HEART = {
@@ -897,8 +899,13 @@ const HEART = {
   plinth: { w: 15, d: 15, h: 40 },
 };
 
-// A pair, close enough to be compared: one ribbon empty, one holding the
-// decimated mesh. Same form, different parameter count - which is the show.
+/* A pair, close enough to be compared. Both ribbons are the same heart curve;
+   one is left open, the other holds decimated-78.stl - which turns out to be
+   a heart too, reduced to 78 triangles. So the pair is one subject at two
+   resolutions: the ribbon is the continuous curve, the mesh is what survives
+   when you throw parameters away. That is the show's title, stated in objects.
+   They clear the prints at x=50.6/116/181.4 on either side - check that if
+   either the hang spacing or HEART.height changes. */
 const HEARTS = [
   { x: 96,  contents: 'empty' },
   { x: 136, contents: 'mesh'  },
@@ -995,9 +1002,12 @@ function buildHeart(spec) {
   // what sits inside the ribbon
   if (spec.contents === 'mesh') {
     const geo = meshGeometry();
+    // Pewter and fairly specular on purpose: at 78 triangles the facets ARE the
+    // piece, so they have to catch the ribbon's pink at different angles. A
+    // pale matte surface just blows out to a white blob under the LEDs.
     const inner = geo
       ? new T.Mesh(geo, new T.MeshStandardMaterial({
-          color: 0xcfd8dc, roughness: 0.52, metalness: 0.35, flatShading: true }))
+          color: 0x9aa4a8, roughness: 0.34, metalness: 0.62, flatShading: true }))
       // placeholder until make_mesh.py has been run - obviously stand-in
       : new T.Mesh(new T.IcosahedronGeometry(1, 1), new T.MeshStandardMaterial({
           color: 0x6b7a80, roughness: 0.7, metalness: 0.1,
@@ -1012,8 +1022,10 @@ function buildHeart(spec) {
   ribbon.position.y = HEART.plinth.h + HEART.height / 2 + 1.2;
   g.add(ribbon);
 
-  const glow = new T.PointLight(0xff3d6b, 2200, 70, 2);
-  glow.position.set(0, HEART.plinth.h + HEART.height / 2 + 1.2, -3);
+  // Behind the ribbon plane, not inside it. The inner mesh is ~5" deep, so a
+  // light at z=-3 sits barely off its back face and (decay 2) nukes it white.
+  const glow = new T.PointLight(0xff3d6b, 900, 70, 2);
+  glow.position.set(0, HEART.plinth.h + HEART.height / 2 + 1.2, -9);
   g.add(glow);
 
   g.position.set(spec.x, 0, zWall);

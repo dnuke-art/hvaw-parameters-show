@@ -38,8 +38,11 @@ Controls: drag to orbit, right-drag or shift-drag to pan, scroll to zoom. In
 layout.html                  UI shell + panel; the editable source
 scene.js                     the whole scene, in inches (1 three.js unit == 1 inch)
 prints.js                    generated — cv-draw thumbnails as data URIs
+mesh.js                      generated — decimated-78.stl as base64 float32
+decimated-78.stl             the 78-triangle heart, from Blender
 vendor/three.global.min.js   generated — three r160, IIFE-wrapped
 make_prints.py               regenerates prints.js from ../cv-draw/out/
+make_mesh.py                 regenerates mesh.js from an STL (binary or ASCII)
 build.py                     inlines everything → docs/index.html (GitHub Pages)
 docs/index.html              generated — the self-contained build Pages serves
 docs/CNAME                   the custom domain; Pages drops it if this vanishes
@@ -66,10 +69,23 @@ console while hanging the show.
 - **The body** (back) — the bender, running, with a grid rack above it that
   fills up over the run of the show.
 
+### The pair of hearts
+
+Two scaled-down Möbius LED hearts on black plinths at x = 96″ and 136″, on the
+record wall, clearing the prints either side. One ribbon is left open; the other
+holds `decimated-78.stl` — which is *also* a heart, reduced to 78 triangles
+(41 vertices, 117 edges, so V−E+F = 2: still closed, still genus 0, just barely).
+
+That pairing is the thesis object. Same subject twice: the ribbon is the smooth
+continuous curve, the mesh is what's left after you throw parameters away, and
+the form survives anyway. If the undecimated original ever turns up, swapping it
+into the open ribbon makes the comparison exact rather than implied.
+
 ## Regenerating
 
 ```bash
-python3 make_prints.py    # after re-rendering cv-draw
+python3 make_prints.py                  # after re-rendering cv-draw
+python3 make_mesh.py decimated-78.stl   # after re-exporting the mesh
 python3 build.py          # → docs/index.html, fully self-contained (Pages serves this)
 ```
 
