@@ -71,15 +71,26 @@ console while hanging the show.
 
 ### The pair of hearts
 
-Two scaled-down Möbius LED hearts on black plinths at x = 96″ and 136″, on the
-record wall, clearing the prints either side. One ribbon is left open; the other
-holds `decimated-78.stl` — which is *also* a heart, reduced to 78 triangles
-(41 vertices, 117 edges, so V−E+F = 2: still closed, still genus 0, just barely).
+Two hearts on **matching black plinths at matching size**, x = 96″ and 136″ on
+the record wall, flanking the centre cyanotype:
 
-That pairing is the thesis object. Same subject twice: the ribbon is the smooth
-continuous curve, the mesh is what's left after you throw parameters away, and
-the form survives anyway. If the undecimated original ever turns up, swapping it
-into the open ribbon makes the comparison exact rather than implied.
+- **x = 96″** — the scaled-down Möbius LED ribbon heart. Self-lit; gets no track
+  head, because lighting it would only wash out the LEDs.
+- **x = 136″** — `decimated-78.stl`, which is *also* a heart, reduced to 78
+  triangles (41 vertices, 117 edges, so V−E+F = 2: still closed, still genus 0,
+  just barely). Solid, flat-shaded, on its own aimed head.
+
+Neither contains the other — they stand as equals and the viewer does the
+comparing. Same subject at two resolutions: the ribbon is the continuous curve,
+the mesh is what's left after you throw parameters away, and the form survives
+anyway. Walking in from the door you meet the lit one first, then its reduction.
+
+Sizes are matched on **height** (`fitHeight`, not a bounding-cube fit) — both
+hearts are wider than they are tall, so fitting the cube would leave the mesh
+visibly short. That lands them at 20.6″ and 21.1″ wide, within 2%.
+
+If the undecimated original ever turns up, a third plinth makes the comparison
+exact rather than implied.
 
 ## Regenerating
 

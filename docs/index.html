@@ -248,7 +248,7 @@
       <label class="chk"><input type="checkbox" id="t-cyano" checked> Cyanotypes (off = cv-draw prints)</label>
       <label class="chk"><input type="checkbox" id="t-sight" checked> Sightline</label>
       <label class="chk"><input type="checkbox" id="t-channel" checked> 3&prime; clear channel</label>
-      <label class="chk"><input type="checkbox" id="t-heart" checked> M&ouml;bius hearts on plinths</label>
+      <label class="chk"><input type="checkbox" id="t-heart" checked> Hearts on plinths (LED + 78-tri)</label>
       <label class="chk"><input type="checkbox" id="t-figure" checked> Figure (5&prime;10&Prime;)</label>
     </div>
 
@@ -1281,16 +1281,16 @@ const HEART = {
   plinth: { w: 15, d: 15, h: 40 },
 };
 
-/* A pair, close enough to be compared. Both ribbons are the same heart curve;
-   one is left open, the other holds decimated-78.stl - which turns out to be
-   a heart too, reduced to 78 triangles. So the pair is one subject at two
-   resolutions: the ribbon is the continuous curve, the mesh is what survives
-   when you throw parameters away. That is the show's title, stated in objects.
-   They clear the prints at x=50.6/116/181.4 on either side - check that if
-   either the hang spacing or HEART.height changes. */
+/* A pair on matching plinths, at matching size: the LED ribbon heart, and
+   decimated-78.stl - which is also a heart, reduced to 78 triangles. Neither
+   contains the other; they stand as equals and the viewer does the comparing.
+   One subject at two resolutions: the ribbon is the continuous curve, the mesh
+   is what survives when you throw parameters away. That is the show's title,
+   stated in objects. Check the clearances against the prints at x=50.6/116/181.4
+   if the hang spacing or HEART.height changes. */
 const HEARTS = [
-  { x: 96,  contents: 'empty' },
-  { x: 136, contents: 'mesh'  },
+  { x: 96,  contents: 'ribbon' },
+  { x: 136, contents: 'mesh'   },
 ];
 
 const heartGroup = new T.Group();
@@ -1326,16 +1326,20 @@ function meshGeometry() {
   return geo;
 }
 
-function fitInto(geo, target) {
+/* Match on HEIGHT, not on the largest axis. Both hearts are wider than they are
+   tall, so fitting the bounding cube would leave the mesh visibly shorter than
+   the ribbon - and "the same size" is the entire point of the pairing. */
+function fitHeight(geo, target) {
   geo.computeBoundingBox();
-  const size = geo.boundingBox.getSize(new T.Vector3());
-  return target / Math.max(size.x, size.y, size.z);
+  return target / geo.boundingBox.getSize(new T.Vector3()).y;
 }
 
 function buildHeart(spec) {
   const g = new T.Group();
   const zWall = DIM.wid / 2 - BOARD.proud - HEART.plinth.d / 2;
 
+  // Identical plinths. If these ever drift apart the comparison stops being
+  // about the hearts and starts being about the furniture.
   const pl = box(HEART.plinth.d, HEART.plinth.h, HEART.plinth.w,
     matte(0x0d1012, { roughness: 0.72, metalness: 0.02 }));
   pl.position.y = HEART.plinth.h / 2;
@@ -1345,6 +1349,44 @@ function buildHeart(spec) {
   const rev = box(HEART.plinth.d + 0.5, 0.4, HEART.plinth.w + 0.5, matte(0x22282b, { roughness: 0.6 }));
   rev.position.y = HEART.plinth.h - 0.2;
   g.add(rev);
+
+  // Shared centre height, so both hearts hang at the same eye level.
+  const yMid = HEART.plinth.h + HEART.height / 2 + 1.2;
+
+  if (spec.contents === 'mesh') {
+    const geo = meshGeometry();
+    /* Pewter, flat-shaded: at 78 triangles the facets ARE the piece. Keep
+       metalness moderate - three.js scales indirect diffuse by (1 - metalness)
+       and there is no env map here, so a high-metal surface has nothing to
+       reflect and sinks to a dark blob away from a direct source. It got away
+       with 0.62 while it sat inside a glowing ribbon; standing alone it can't. */
+    const heart = geo
+      ? new T.Mesh(geo, new T.MeshStandardMaterial({
+          color: 0xa2acb1, roughness: 0.42, metalness: 0.32, flatShading: true }))
+      // placeholder until make_mesh.py has been run - obviously a stand-in
+      : new T.Mesh(new T.IcosahedronGeometry(1, 1), new T.MeshStandardMaterial({
+          color: 0x6b7a80, roughness: 0.7, metalness: 0.1,
+          flatShading: true, wireframe: true }));
+    heart.scale.setScalar(fitHeight(heart.geometry, HEART.height));
+    heart.position.y = yMid;
+    heart.castShadow = true;
+    heart.userData.placeholder = !geo;
+    g.add(heart);
+    g.userData.heart = heart;
+
+    /* The head you'd actually aim at a sculpture on a plinth. The ribbon heart
+       doesn't get one - it's its own source, and lighting it would only wash
+       out the LEDs. Deliberately not a shadow caster: the directional already
+       gives this heart a shadow, and a second one just fights it. */
+    const head = new T.SpotLight(0xfff6ec, 3400, 120, Math.PI * 26 / 180, 0.45, 2);
+    head.position.set(0, 78, -22);
+    head.target.position.set(0, yMid, 0);
+    g.add(head, head.target);
+
+    g.position.set(spec.x, 0, zWall);
+    heartGroup.add(g);
+    return g;
+  }
 
   const ribbon = new T.Group();
   const curve = heartCurve();
@@ -1381,33 +1423,15 @@ function buildHeart(spec) {
     ribbon.add(panel);
   }
 
-  // what sits inside the ribbon
-  if (spec.contents === 'mesh') {
-    const geo = meshGeometry();
-    // Pewter and fairly specular on purpose: at 78 triangles the facets ARE the
-    // piece, so they have to catch the ribbon's pink at different angles. A
-    // pale matte surface just blows out to a white blob under the LEDs.
-    const inner = geo
-      ? new T.Mesh(geo, new T.MeshStandardMaterial({
-          color: 0x9aa4a8, roughness: 0.34, metalness: 0.62, flatShading: true }))
-      // placeholder until make_mesh.py has been run - obviously stand-in
-      : new T.Mesh(new T.IcosahedronGeometry(1, 1), new T.MeshStandardMaterial({
-          color: 0x6b7a80, roughness: 0.7, metalness: 0.1,
-          flatShading: true, wireframe: true }));
-    inner.scale.setScalar(fitInto(inner.geometry, HEART.height * 0.52));
-    inner.castShadow = true;
-    inner.userData.placeholder = !geo;
-    ribbon.add(inner);
-    g.userData.inner = inner;
-  }
-
-  ribbon.position.y = HEART.plinth.h + HEART.height / 2 + 1.2;
+  ribbon.position.y = yMid;
   g.add(ribbon);
+  g.userData.heart = ribbon;
 
-  // Behind the ribbon plane, not inside it. The inner mesh is ~5" deep, so a
-  // light at z=-3 sits barely off its back face and (decay 2) nukes it white.
+  // Behind the ribbon plane rather than in it, so the panels read as the source
+  // and the spill lands on the wall. Reaches the neighbouring plinth at 40",
+  // which is how the decimated heart picks up its pink - that spill is real.
   const glow = new T.PointLight(0xff3d6b, 900, 70, 2);
-  glow.position.set(0, HEART.plinth.h + HEART.height / 2 + 1.2, -9);
+  glow.position.set(0, yMid, -9);
   g.add(glow);
 
   g.position.set(spec.x, 0, zWall);
