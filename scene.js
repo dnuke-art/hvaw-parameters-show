@@ -668,12 +668,18 @@ function buildMonitors() {
 }
 buildMonitors();
 
-// open shelf with the Jetsons on it
-/* The two boards now live in the outer frames, so what runs between them is
-   just the wire - left long, slack and lit. That distance is the piece. */
+/* The two boards live in the outer frames, so what runs between them is just
+   the wire - left long, slack and lit. That distance was going to be the piece.
+
+   OFF BY DEFAULT: Dan doesn't want wiring shown on the boards. The geometry
+   stays because the run length feeds the stats readout either way, and because
+   this is one checkbox away if he wants the idea back. Anything that rebuilds
+   the cable has to re-apply cableVisible, or it pops back on when a slider
+   moves - which is why buildCable() sets it rather than the toggle handler. */
 
 const cableMat = new T.MeshStandardMaterial({ color: 0xd8c15a, roughness: 0.55, metalness: 0.05 });
 let cable = null;
+let cableVisible = false;        // must match the t-cable checkbox default
 
 function buildCable() {
   if (cable) computeWall.remove(cable);
@@ -696,6 +702,7 @@ function buildCable() {
     cableMat
   );
   cable.castShadow = true;
+  cable.visible = cableVisible;
   computeWall.add(cable);
   return b - a;
 }
@@ -1472,6 +1479,10 @@ bind('t-backlight', n => {
 });
 bind('t-figure', n => { figure.visible = n.checked; });
 bind('t-heart', n => { heartGroup.visible = n.checked; });
+bind('t-cable', n => {
+  cableVisible = n.checked;
+  if (cable) cable.visible = cableVisible;
+});
 
 bind('s-monh', n => {
   MON.centerY = +n.value;
