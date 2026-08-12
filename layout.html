@@ -236,6 +236,10 @@
 
   #drawer-handle { display: none; }
 
+  /* Inside #app on purpose. #app is position:fixed, which establishes a
+     stacking context, so #side's z-index only competes within #app - a scrim
+     placed outside it wins over the panel no matter what z-index the panel
+     has, dimming it AND swallowing every touch aimed at it. */
   #scrim {
     position: fixed;
     inset: 0;
@@ -261,6 +265,9 @@
       border-right: 1px solid var(--rule);
       box-shadow: 0 0 44px rgba(0, 0, 0, .6);
       padding-top: 62px;
+      touch-action: pan-y;          /* the canvas sets none; the panel must scroll */
+      overscroll-behavior: contain; /* hitting the end must not chain to the body */
+      -webkit-overflow-scrolling: touch;
     }
     body.panel-open #side { transform: translateX(0); }
     body.panel-open #scrim { opacity: 1; pointer-events: auto; }
@@ -292,9 +299,9 @@
 </style>
 
 <button id="drawer-handle" type="button" aria-expanded="false" aria-controls="side">Controls</button>
-<div id="scrim"></div>
 
 <div id="app">
+  <div id="scrim"></div>
 
   <aside id="side">
     <div class="brand">
